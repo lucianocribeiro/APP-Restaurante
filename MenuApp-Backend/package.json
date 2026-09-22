@@ -4,7 +4,7 @@
   "description": "Backend API for MenuApp",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "dev": "ts-node-dev --respawn --transpile-only --poll --interval 2000 --debounce 2000 --ignore-watch node_modules --ignore-watch prisma --ignore-watch dist src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "prisma:generate": "prisma generate",

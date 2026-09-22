@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { prisma } from '../index';
+import { prisma } from '../lib/prisma';
 
 // Helper: look up the real localId from DB using the user email stored in the token.
 // Email is stable across DB re-seeds; numeric IDs can change.

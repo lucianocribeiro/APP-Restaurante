@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
-import { prisma, io } from '../index';
+import { prisma } from '../lib/prisma';
+import { emitSafe } from '../lib/socket';
 
 export const getOrderById = async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -114,8 +115,7 @@ export const placeOrder = async (req: Request, res: Response) => {
       }
     });
 
-    // Notify administrators in real-time
-    io.emit('newOrder', order);
+    emitSafe('newOrder', order);
 
     res.status(201).json(order);
   } catch (error: any) {

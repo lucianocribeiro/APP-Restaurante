@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Clock, CheckCircle, ChefHat, Utensils, ArrowLeft, RotateCcw, Star, Sparkles } from 'lucide-react';
 import api from '../api/axios';
-import { io } from 'socket.io-client';
+import { getSocket } from '../lib/socket';
 
 const OrderStatus = () => {
   const { orderId } = useParams();
@@ -25,26 +25,25 @@ const OrderStatus = () => {
     if (orderId) {
       fetchOrder();
 
-      const socket = io(window.location.origin, {
-        reconnection: true,
-        reconnectionAttempts: 5,
-        reconnectionDelay: 1000,
-      });
+      const socket = getSocket();
 
-      socket.on('orderStatusUpdated', (updatedOrder) => {
+      const onStatusUpdated = (updatedOrder: any) => {
         if (updatedOrder.id.toString() === orderId.toString()) {
           setOrder(updatedOrder);
         }
-      });
-
-      socket.on('orderPaymentUpdated', (updatedOrder) => {
+      };
+      const onPaymentUpdated = (updatedOrder: any) => {
         if (updatedOrder.id.toString() === orderId.toString()) {
           setOrder(updatedOrder);
         }
-      });
+      };
+
+      socket.on('orderStatusUpdated', onStatusUpdated);
+      socket.on('orderPaymentUpdated', onPaymentUpdated);
 
       return () => {
-        socket.disconnect();
+        socket.off('orderStatusUpdated', onStatusUpdated);
+        socket.off('orderPaymentUpdated', onPaymentUpdated);
       };
     }
   }, [orderId]);

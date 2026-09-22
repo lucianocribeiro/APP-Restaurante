@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { prisma } from '../index';
+import { prisma } from '../lib/prisma';
 import { MercadoPagoConfig, Payment } from 'mercadopago';
 
 const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { getSocket } from '../lib/socket';
 import api from '../api/axios';
 import type { Order } from '../types';
 
@@ -39,17 +39,18 @@ export function useAdminOrders() {
   useEffect(() => {
     fetchOrders();
 
-    const socket: Socket = io(window.location.origin, {
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
+    const socket = getSocket();
 
-    socket.on('connect', () => { socketConnected.current = true; });
-    socket.on('disconnect', () => { socketConnected.current = false; });
-    socket.on('newOrder', (order: Order) => {
+    const onConnect = () => { socketConnected.current = true; };
+    const onDisconnect = () => { socketConnected.current = false; };
+    const onNewOrder = (order: Order) => {
       setOrders((prev) => [order, ...prev]);
-    });
+    };
+
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    socket.on('newOrder', onNewOrder);
+    if (socket.connected) socketConnected.current = true;
 
     const interval = setInterval(() => {
       if (!socketConnected.current) fetchOrders();
@@ -57,7 +58,9 @@ export function useAdminOrders() {
 
     return () => {
       clearInterval(interval);
-      socket.disconnect();
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+      socket.off('newOrder', onNewOrder);
     };
   }, [fetchOrders]);
 

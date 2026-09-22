@@ -3,7 +3,7 @@ import { LayoutDashboard, ShoppingBag, Utensils, Settings, LogOut, CheckCircle, 
 import api from '../api/axios';
 import { useAuthStore } from '../context/authStore';
 import { useNavigate } from 'react-router-dom';
-import { io } from 'socket.io-client';
+import { getSocket } from '../lib/socket';
 
 const AdminDashboard = () => {
   const [orders, setOrders] = useState<any[]>([]);
@@ -54,35 +54,35 @@ const AdminDashboard = () => {
     fetchInitialData();
     fetchKitchens();
 
-        // Set up real-time updates
-    const socket = io(window.location.origin, {
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
+    const socket = getSocket();
 
-    socket.on('connect', () => {
+    const onConnect = () => {
       console.log('🔌 Socket connected:', socket.id);
-    });
-
-    socket.on('newOrder', (order) => {
+    };
+    const onNewOrder = (order: any) => {
       console.log('🔔 New order received:', order);
       setOrders((prev) => [order, ...prev]);
       fetchTables();
-    });
-
-    socket.on('orderStatusUpdated', (updatedOrder) => {
+    };
+    const onStatusUpdated = (updatedOrder: any) => {
       setOrders(prev => prev.map(o => o.id === updatedOrder.id ? updatedOrder : o));
-    });
-
-    socket.on('orderPaymentUpdated', (updatedOrder) => {
+    };
+    const onPaymentUpdated = (updatedOrder: any) => {
       setOrders(prev => prev.map(o => o.id === updatedOrder.id ? updatedOrder : o));
-    });
+    };
 
-    const interval = setInterval(() => { fetchOrders(); fetchTables(); }, 30000); // Backup polling
+    socket.on('connect', onConnect);
+    socket.on('newOrder', onNewOrder);
+    socket.on('orderStatusUpdated', onStatusUpdated);
+    socket.on('orderPaymentUpdated', onPaymentUpdated);
+
+    const interval = setInterval(() => { fetchOrders(); fetchTables(); }, 30000);
     return () => {
       clearInterval(interval);
-      socket.disconnect();
+      socket.off('connect', onConnect);
+      socket.off('newOrder', onNewOrder);
+      socket.off('orderStatusUpdated', onStatusUpdated);
+      socket.off('orderPaymentUpdated', onPaymentUpdated);
     };
   }, []);
 

@@ -3,7 +3,7 @@ import { Utensils, LogOut, CheckCircle, Clock, ArrowRight, X, Plus, MapPin, Sear
 import api from '../api/axios';
 import { useAuthStore } from '../context/authStore';
 import { useNavigate } from 'react-router-dom';
-import { io } from 'socket.io-client';
+import { getSocket } from '../lib/socket';
 
 const MozoDashboard = () => {
   const [orders, setOrders] = useState<any[]>([]);
@@ -21,35 +21,34 @@ const MozoDashboard = () => {
     fetchTables();
     fetchLocalData();
 
-    const socket = io(window.location.origin, {
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
+    const socket = getSocket();
 
-    socket.on('newOrder', (order) => {
+    const onNewOrder = (order: any) => {
       setOrders((prev) => [order, ...prev]);
       fetchTables();
-    });
-
-    socket.on('orderStatusUpdated', (updatedOrder) => {
+    };
+    const onStatusUpdated = (updatedOrder: any) => {
       setOrders(prev => {
-        // Si el estado es Cobrado, lo eliminamos del panel del mozo
         if (updatedOrder.estado === 'Cobrado') {
           return prev.filter(o => o.id !== updatedOrder.id);
         }
         return prev.map(o => o.id === updatedOrder.id ? updatedOrder : o);
       });
-    });
-
-    socket.on('orderPaymentUpdated', (updatedOrder) => {
+    };
+    const onPaymentUpdated = (updatedOrder: any) => {
       setOrders(prev => prev.map(o => o.id === updatedOrder.id ? updatedOrder : o));
-    });
+    };
+
+    socket.on('newOrder', onNewOrder);
+    socket.on('orderStatusUpdated', onStatusUpdated);
+    socket.on('orderPaymentUpdated', onPaymentUpdated);
 
     const interval = setInterval(() => { fetchOrders(); fetchTables(); }, 30000);
     return () => {
       clearInterval(interval);
-      socket.disconnect();
+      socket.off('newOrder', onNewOrder);
+      socket.off('orderStatusUpdated', onStatusUpdated);
+      socket.off('orderPaymentUpdated', onPaymentUpdated);
     };
   }, []);
 

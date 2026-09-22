@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
+import { emitSafe } from '../lib/socket';
 
 export const getOrders = async (req: Request, res: Response) => {
   const localId = req.user?.localId;
@@ -35,8 +36,7 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
       }
     });
     
-    const { io } = require('../index');
-    io.emit('orderStatusUpdated', order);
+    emitSafe('orderStatusUpdated', order);
     
     res.json(order);
   } catch (error) {
@@ -91,8 +91,7 @@ export const updateOrderPaymentStatus = async (req: Request, res: Response) => {
       }
     });
     
-    const { io } = require('../index');
-    io.emit('orderPaymentUpdated', order);
+    emitSafe('orderPaymentUpdated', order);
 
     res.json(order);
   } catch (error) {

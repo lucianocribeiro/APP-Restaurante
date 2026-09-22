@@ -1,10 +1,10 @@
 import { io, Socket } from 'socket.io-client';
 
-// In Vite, talk to the API process directly. Proxying Socket.IO WebSockets
-// through Vite on Windows can loop reconnects and crash the machine.
-const SOCKET_URL = import.meta.env.DEV
-  ? 'http://127.0.0.1:3001'
-  : window.location.origin;
+// Prefer explicit backend URL (Vercel / split deploy). In local Vite, talk to
+// the API process directly — never proxy Socket.IO WS through Vite on Windows.
+const SOCKET_URL =
+  (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '') ||
+  (import.meta.env.DEV ? 'http://127.0.0.1:3001' : window.location.origin);
 
 let socket: Socket | null = null;
 

@@ -1,7 +1,11 @@
 import axios from 'axios';
 
+// Same-origin `/api` (Apache/PM2 or Vite proxy). On Vercel set VITE_BACKEND_URL
+// to the teammate's API host, e.g. https://api.example.com
+const backend = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: backend ? `${backend}/api` : '/api',
 });
 
 api.interceptors.request.use((config) => {

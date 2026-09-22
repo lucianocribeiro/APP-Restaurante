@@ -22,11 +22,13 @@
 
 ```
 PORT=3001
-JWT_SECRET=c24f56f162168de0c4a28afc2c15a76e653e74629effadeebd98139bab1939e3
+JWT_SECRET=replace_with_a_long_random_secret_at_least_32_chars
 MP_ACCESS_TOKEN=TEST-tu-access-token-aqui
 FRONTEND_URL=*
-BASE_URL=http://179.41.8.247
+BASE_URL=http://localhost:3001
 ```
+
+> Nunca subas un `JWT_SECRET` real al repositorio. Generá uno propio en cada entorno.
 
 ## Para resetear la base de datos al estado inicial
 

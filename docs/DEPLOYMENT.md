@@ -53,8 +53,8 @@ Apache resuelve la IP din√°mica de WSL2 usando `localhost` (Windows mapea autom√
 ```bash
 # En WSL2
 cd ~
-git clone https://github.com/Francisco98-p/appmenu.git
-cd appmenu
+git clone https://github.com/lucianocribeiro/APP-Restaurante.git
+cd APP-Restaurante
 ```
 
 ---

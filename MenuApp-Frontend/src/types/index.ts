@@ -40,7 +40,7 @@ export interface Local {
   logo?: string;
   slug: string;
   cbuAlias?: string;
-  mercadoPagoLink?: string;
+  linkPago?: string;
   horarioApertura?: string;
   horarioCierre?: string;
   categorias: Category[];
@@ -52,7 +52,7 @@ export interface LocalSettings {
   logo?: string;
   slug: string;
   cbuAlias?: string;
-  mercadoPagoLink?: string;
+  linkPago?: string;
 }
 
 export interface User {
@@ -94,4 +94,4 @@ export interface CartItem {
   imagen?: string;
 }
 
-export type PaymentMethod = 'Efectivo' | 'MercadoPago';
+export type PaymentMethod = 'Efectivo' | 'Tarjeta BAC';

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Search, Plus, Minus, X, Utensils, CheckCircle, ArrowRight, Clock } from 'lucide-react';
+import { ShoppingCart, Search, Plus, Minus, X, Utensils, CheckCircle, ArrowRight, Clock, CreditCard } from 'lucide-react';
 import api from '../api/axios';
 import { useCartStore } from '../context/cartStore';
+import { formatPrice } from '../lib/format';
+import type { PaymentMethod } from '../types';
 
 const Menu = () => {
   const { slug } = useParams();
@@ -19,9 +21,9 @@ const Menu = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedTableNum, setSelectedTableNum] = useState<string>(mesaParam || '');
   const [isOrderSuccess, setIsOrderSuccess] = useState(false);
-  const [lastOrderId, setLastOrderId] = useState<number | null>(null);
+  const [lastOrder, setLastOrder] = useState<{ id: number; total: number; metodoPago: PaymentMethod } | null>(null);
   const [placingOrder, setPlacingOrder] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'Efectivo' | 'MercadoPago'>('Efectivo');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Efectivo');
   const [tipoOrden, setTipoOrden] = useState<'salon' | 'retirar'>('salon');
 
   const { items, addItem, removeItem, total, clearCart } = useCartStore();
@@ -49,39 +51,14 @@ const Menu = () => {
       return;
     }
 
-    if (paymentMethod === 'MercadoPago') {
-      try {
-        const preferenceResponse = await api.post('/payment/create-preference', {
-          items: items.map(item => ({
-            nombre: item.nombre,
-            precioUnitario: item.precio,
-            cantidad: item.cantidad
-          })),
-          localId: local.id
-        });
-
-        const { initPoint } = preferenceResponse.data;
-        if (initPoint) {
-          window.location.href = initPoint;
-        }
-      } catch (err) {
-        console.error('Error creating preference:', err);
-        alert('Hubo un error al iniciar el pago con Mercado Pago.');
-      }
-      return;
-    }
-
-    confirmOrder();
-  };
-
-  const confirmOrder = async () => {
+    const orderTotal = total();
     setPlacingOrder(true);
     try {
       const response = await api.post('/orders', {
         localId: local.id,
         mesa: tipoOrden === 'retirar' ? 'Retirar' : selectedTableNum,
         metodoPago: paymentMethod,
-        total: total(),
+        total: orderTotal,
         tipoOrden,
         items: items.map(item => ({
           productId: item.productId,
@@ -90,7 +67,7 @@ const Menu = () => {
           aclaracion: ''
         }))
       });
-      setLastOrderId(response.data.id);
+      setLastOrder({ id: response.data.id, total: orderTotal, metodoPago: paymentMethod });
       setIsOrderSuccess(true);
       clearCart();
     } catch (err) {
@@ -98,14 +75,6 @@ const Menu = () => {
     } finally {
       setPlacingOrder(false);
     }
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-      minimumFractionDigits: 0
-    }).format(price);
   };
 
   if (loading) {
@@ -149,6 +118,23 @@ const Menu = () => {
               : <> para <span className="text-primary font-black uppercase">Retirar</span></>
             }.
           </p>
+          {lastOrder?.metodoPago === 'Tarjeta BAC' && local.linkPago && (
+            <div className="glass-dark border border-white/10 rounded-[2rem] p-6 mb-10 max-w-sm mx-auto">
+              <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Total a pagar</p>
+              <p className="text-4xl font-black text-white italic tracking-tighter mb-5">{formatPrice(lastOrder.total)}</p>
+              <a
+                href={local.linkPago}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-gradient-to-r from-primary to-orange-600 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-[0.15em] text-xs flex items-center justify-center gap-3 shadow-2xl shadow-primary/30 active:scale-95 transition-all"
+              >
+                <CreditCard size={18} /> Pagar con tarjeta
+              </a>
+              <p className="text-gray-500 text-xs font-medium mt-4 leading-relaxed">
+                Se abre la billetera de BAC Credomatic. Ingresá ese monto y el local confirma tu pago.
+              </p>
+            </div>
+          )}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={() => isMozo ? navigate('/mozo/dashboard') : setIsOrderSuccess(false)}
@@ -156,9 +142,9 @@ const Menu = () => {
             >
               {isMozo ? 'Volver al Panel Mozo' : 'Cerrar'}
             </button>
-            {!isMozo && lastOrderId && (
+            {!isMozo && lastOrder && (
               <button
-                onClick={() => navigate(`/status/${lastOrderId}`)}
+                onClick={() => navigate(`/status/${lastOrder.id}`)}
                 className="bg-primary text-white px-12 py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs transition-all active:scale-95 shadow-2xl shadow-primary/30 flex items-center justify-center gap-3"
               >
                 Seguir mi Pedido <ArrowRight size={16} />
@@ -185,16 +171,18 @@ const Menu = () => {
       {/* Hero Header */}
       <div className="relative h-[200px] sm:h-[260px] overflow-hidden">
         <div className="absolute inset-0">
-          <img src="/images/chilligarden/cover.png" alt="" className="w-full h-full object-cover opacity-40 blur-[2px] scale-110" />
+          <img src={`/images/${local.slug}/cover.jpg`} alt="" className="w-full h-full object-cover opacity-40 blur-[2px] scale-110" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#080B10] via-[#080B10]/50 to-transparent"></div>
         </div>
         <div className="relative z-10 h-full flex flex-col justify-end px-4 sm:px-8 pb-5 max-w-3xl mx-auto w-full">
           <div className="flex items-end gap-4">
-            <img
-              src="/images/chilligarden/logo.png"
-              alt={local.nombre}
-              className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-white/10 shadow-xl shrink-0"
-            />
+            {local.logo && (
+              <img
+                src={local.logo}
+                alt={local.nombre}
+                className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-contain bg-white p-1 border-2 border-white/10 shadow-xl shrink-0"
+              />
+            )}
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl sm:text-3xl font-black tracking-tighter text-white uppercase italic leading-none truncate">
                 {local.nombre}
@@ -468,7 +456,7 @@ const Menu = () => {
                   {!isMozo && (
                     <div>
                       <p className="text-gray-500 text-[9px] font-black uppercase tracking-[0.2em] mb-3">Método de pago</p>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className={`grid gap-2 ${local.linkPago ? 'grid-cols-2' : 'grid-cols-1'}`}>
                         <button
                           onClick={() => setPaymentMethod('Efectivo')}
                           className={`flex items-center justify-center gap-2 py-3 rounded-2xl border-2 transition-all font-black text-[10px] uppercase tracking-widest ${paymentMethod === 'Efectivo'
@@ -478,15 +466,17 @@ const Menu = () => {
                         >
                           💵 Efectivo
                         </button>
-                        <button
-                          onClick={() => setPaymentMethod('MercadoPago')}
-                          className={`flex items-center justify-center gap-2 py-3 rounded-2xl border-2 transition-all font-black text-[10px] uppercase tracking-widest ${paymentMethod === 'MercadoPago'
-                            ? 'bg-primary/10 border-primary text-primary'
-                            : 'bg-white/5 border-white/5 text-gray-600 hover:bg-white/10'
-                            }`}
-                        >
-                          📱 M. Pago
-                        </button>
+                        {local.linkPago && (
+                          <button
+                            onClick={() => setPaymentMethod('Tarjeta BAC')}
+                            className={`flex items-center justify-center gap-2 py-3 rounded-2xl border-2 transition-all font-black text-[10px] uppercase tracking-widest ${paymentMethod === 'Tarjeta BAC'
+                              ? 'bg-primary/10 border-primary text-primary'
+                              : 'bg-white/5 border-white/5 text-gray-600 hover:bg-white/10'
+                              }`}
+                          >
+                            💳 Tarjeta
+                          </button>
+                        )}
                       </div>
                     </div>
                   )}

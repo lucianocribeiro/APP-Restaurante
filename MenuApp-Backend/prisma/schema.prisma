@@ -23,7 +23,7 @@ model Local {
   logo            String?
   slug            String     @unique
   cbuAlias        String?
-  mercadoPagoLink String?
+  linkPago        String?    @map("mercadoPagoLink")
   horarioApertura String?
   horarioCierre   String?
   direccion       String?

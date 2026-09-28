@@ -51,7 +51,7 @@ const DemoLinks: React.FC = () => {
 
         {/* Card Cliente */}
         <div
-          onClick={() => navigate('/m/chilligarden')}
+          onClick={() => navigate('/m/entrepanes')}
           className="group relative glass rounded-[2rem] p-8 sm:p-10 cursor-pointer border border-white/8 overflow-hidden transition-all duration-500
             hover:border-orange-500/40 hover:shadow-[0_30px_80px_rgba(255,77,28,0.18)] hover:scale-[1.025]
             animate-card-in"
@@ -73,7 +73,7 @@ const DemoLinks: React.FC = () => {
               <ArrowRight className="text-gray-500 group-hover:text-orange-400 group-hover:translate-x-1.5 transition-all duration-300" size={22} />
             </h2>
             <p className="text-gray-400 font-medium leading-relaxed text-sm flex-grow mb-8">
-              Explorá el menú digital de <span className="text-orange-300 font-semibold">Chilli Garden</span>. Agregá productos al carrito y realizá tu pedido en segundos.
+              Explorá el menú digital de <span className="text-orange-300 font-semibold">Entrepanes</span>. Agregá productos al carrito y realizá tu pedido en segundos.
             </p>
 
             <div className="flex items-center justify-between">

@@ -1,5 +1,6 @@
 import { Search, Plus, Minus, Utensils } from 'lucide-react';
 import type { Product, Kitchen } from '../../types';
+import { formatPrice } from '../../lib/format';
 
 interface StockTableProps {
   products: Product[];
@@ -144,7 +145,7 @@ export const StockTable = ({
                     </div>
                     <div>
                       <p className="font-black text-white italic uppercase tracking-tighter">{product.nombre}</p>
-                      <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">${product.precio}</p>
+                      <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">{formatPrice(product.precio)}</p>
                     </div>
                   </div>
                 </td>

@@ -110,7 +110,7 @@ export const getLocalSettings = async (req: Request, res: Response) => {
         logo: true,
         slug: true,
         cbuAlias: true,
-        mercadoPagoLink: true
+        linkPago: true
       }
     });
     res.json(local);
@@ -121,12 +121,12 @@ export const getLocalSettings = async (req: Request, res: Response) => {
 
 export const updateLocalSettings = async (req: Request, res: Response) => {
   const localId = req.user?.localId;
-  const { nombre, logo, cbuAlias, mercadoPagoLink } = req.body;
+  const { nombre, logo, cbuAlias, linkPago } = req.body;
   
   try {
     const local = await prisma.local.update({
       where: { id: localId },
-      data: { nombre, logo, cbuAlias, mercadoPagoLink }
+      data: { nombre, logo, cbuAlias, linkPago }
     });
     res.json(local);
   } catch (error) {

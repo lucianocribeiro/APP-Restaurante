@@ -4,6 +4,7 @@ import api from '../api/axios';
 import { useAuthStore } from '../context/authStore';
 import { useNavigate } from 'react-router-dom';
 import { getSocket } from '../lib/socket';
+import { formatPrice } from '../lib/format';
 
 const MozoDashboard = () => {
   const [orders, setOrders] = useState<any[]>([]);
@@ -55,7 +56,7 @@ const MozoDashboard = () => {
   const fetchLocalData = async () => {
     try {
       // Usamos el slug por defecto o el del local del usuario
-      const slug = user?.local?.slug || 'chilligarden';
+      const slug = user?.local?.slug || 'entrepanes';
       const response = await api.get(`/menu/${slug}`);
       setLocal(response.data);
     } catch (err) {
@@ -89,7 +90,7 @@ const MozoDashboard = () => {
   };
 
   const handleTomarPedido = (mesaNum: string) => {
-    const slug = user?.local?.slug || 'chilligarden';
+    const slug = user?.local?.slug || 'entrepanes';
     navigate(`/m/${slug}?mesa=${mesaNum}&mozo=true`);
   };
 
@@ -241,7 +242,7 @@ const MozoDashboard = () => {
                   {table.total > 0 && (
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Cuenta</span>
-                      <span className="text-xl font-black text-white italic tracking-tight">${table.total}</span>
+                      <span className="text-xl font-black text-white italic tracking-tight">{formatPrice(table.total)}</span>
                     </div>
                   )}
                 </div>
@@ -320,14 +321,14 @@ const MozoDashboard = () => {
                               <span className="font-black text-primary text-sm bg-primary/10 w-8 h-8 flex items-center justify-center rounded-lg">{item.cantidad}x</span>
                               <span className="font-bold text-gray-300 text-sm uppercase italic">{item.producto.nombre}</span>
                             </div>
-                            <span className="font-black text-white text-sm italic tracking-tight">${item.precioUnitario * item.cantidad}</span>
+                            <span className="font-black text-white text-sm italic tracking-tight">{formatPrice(item.precioUnitario * item.cantidad)}</span>
                           </div>
                         ))}
                       </div>
 
                       <div className="pt-6 border-t border-white/5 flex justify-between items-end">
                         <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Subtotal Pedido</span>
-                        <span className="text-2xl font-black text-white italic tracking-tighter">${order.total}</span>
+                        <span className="text-2xl font-black text-white italic tracking-tighter">{formatPrice(order.total)}</span>
                       </div>
                     </div>
                   ))}
@@ -339,7 +340,7 @@ const MozoDashboard = () => {
             <div className="p-6 sm:p-10 bg-black/40 border-t border-white/5 shrink-0">
                <div className="flex justify-between items-end mb-8">
                   <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Total Mesa</span>
-                  <span className="text-4xl font-black text-primary italic tracking-tighter leading-none">${tables[selectedTable].total}</span>
+                  <span className="text-4xl font-black text-primary italic tracking-tighter leading-none">{formatPrice(tables[selectedTable].total)}</span>
                 </div>
               <button 
                 onClick={() => handleTomarPedido(selectedTable)}

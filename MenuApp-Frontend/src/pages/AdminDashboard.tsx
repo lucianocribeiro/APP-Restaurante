@@ -4,6 +4,7 @@ import api from '../api/axios';
 import { useAuthStore } from '../context/authStore';
 import { useNavigate } from 'react-router-dom';
 import { getSocket } from '../lib/socket';
+import { formatPrice } from '../lib/format';
 
 const AdminDashboard = () => {
   const [orders, setOrders] = useState<any[]>([]);
@@ -34,7 +35,7 @@ const AdminDashboard = () => {
       nombre: '',
       logo: '',
       cbuAlias: '',
-      mercadoPagoLink: ''
+      linkPago: ''
     });
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
@@ -406,7 +407,7 @@ const AdminDashboard = () => {
           </div>
           <div className="bg-gray-900 border border-white/5 p-5 sm:p-6 rounded-2xl sm:rounded-[2rem] shadow-xl sm:col-span-2">
             <p className="text-gray-500 text-[9px] sm:text-[10px] font-black uppercase tracking-widest mb-1">Total por Cobrar</p>
-            <h3 className="text-2xl sm:text-3xl font-black text-primary">${Object.values(tables).reduce((acc: number, t: any) => acc + t.total, 0)}</h3>
+            <h3 className="text-2xl sm:text-3xl font-black text-primary">{formatPrice(Object.values(tables).reduce((acc: number, t: any) => acc + t.total, 0))}</h3>
           </div>
         </div>
 
@@ -451,7 +452,7 @@ const AdminDashboard = () => {
                   <div className="space-y-1 mb-8">
                     <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Cuenta Actual</p>
                     <div className="flex items-center gap-3">
-                      <p className={`text-3xl font-black ${table.total > 0 ? 'text-primary' : 'text-gray-700'}`}>${table.total}</p>
+                      <p className={`text-3xl font-black ${table.total > 0 ? 'text-primary' : 'text-gray-700'}`}>{formatPrice(table.total)}</p>
                       {table.total > 0 && (
                         <div className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter ${
                           table.pagoConfirmado ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'
@@ -605,7 +606,7 @@ const AdminDashboard = () => {
                           </div>
                           <div>
                             <p className="font-black text-white italic uppercase tracking-tighter">{product.nombre}</p>
-                            <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">${product.precio}</p>
+                            <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">{formatPrice(product.precio)}</p>
                           </div>
                         </div>
                       </td>
@@ -667,22 +668,22 @@ const AdminDashboard = () => {
               <h3 className="text-xl sm:text-2xl font-black text-white mb-6 italic uppercase tracking-tighter">Configuración de Pagos</h3>
               <form onSubmit={saveLocalSettings} className="space-y-6">
                 <div>
-                  <label className="block text-gray-400 text-xs font-black uppercase tracking-widest mb-2">CBU o Alias para transferencias</label>
+                  <label className="block text-gray-400 text-xs font-black uppercase tracking-widest mb-2">Datos para transferencias / Yappy</label>
                   <input 
                     type="text" 
-                    placeholder="Ej: 1234567890123456789012 o mi.alias"
+                    placeholder="Ej: número de cuenta o Yappy"
                     value={localSettings.cbuAlias || ''}
                     onChange={(e) => setLocalSettings({...localSettings, cbuAlias: e.target.value})}
                     className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-primary/50 transition-all font-bold"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-400 text-xs font-black uppercase tracking-widest mb-2">Link de Mercado Pago</label>
+                  <label className="block text-gray-400 text-xs font-black uppercase tracking-widest mb-2">Link de pago BAC Credomatic (CompraClick)</label>
                   <input 
-                    type="text" 
-                    placeholder="Ej: https://mpago.la/xxxxxx"
-                    value={localSettings.mercadoPagoLink || ''}
-                    onChange={(e) => setLocalSettings({...localSettings, mercadoPagoLink: e.target.value})}
+                    type="url" 
+                    placeholder="Ej: https://checkout.baccredomatic.com/xxxxxx"
+                    value={localSettings.linkPago || ''}
+                    onChange={(e) => setLocalSettings({...localSettings, linkPago: e.target.value})}
                     className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-primary/50 transition-all font-bold"
                   />
                 </div>
@@ -782,7 +783,7 @@ const AdminDashboard = () => {
                       <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${
                                             order.metodoPago === 'Efectivo' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
                                           }`}>
-                                            {order.metodoPago === 'Efectivo' ? '💵 EFECTIVO' : '📱 MERCADO PAGO'}
+                                            {order.metodoPago === 'Efectivo' ? '💵 EFECTIVO' : '💳 TARJETA BAC'}
                                           </span>
                     </div>
                     <div className="space-y-3">
@@ -792,7 +793,7 @@ const AdminDashboard = () => {
                             <span className="font-black text-primary">{item.cantidad}x</span>
                             <span className="font-bold text-gray-300 text-sm">{item.producto.nombre}</span>
                           </div>
-                          <span className="font-black text-white text-sm">${item.precioUnitario * item.cantidad}</span>
+                          <span className="font-black text-white text-sm">{formatPrice(item.precioUnitario * item.cantidad)}</span>
                         </div>
                       ))}
                     </div>
@@ -811,7 +812,7 @@ const AdminDashboard = () => {
               <div className="p-6 sm:p-10 bg-black/40 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6">
                 <div className="text-center sm:text-left">
                   <p className="text-gray-500 text-[10px] sm:text-xs font-black uppercase tracking-widest mb-1">Total Acumulado</p>
-                  <p className="text-4xl sm:text-5xl font-black text-primary tracking-tighter leading-none">${tables[selectedTable].total}</p>
+                  <p className="text-4xl sm:text-5xl font-black text-primary tracking-tighter leading-none">{formatPrice(tables[selectedTable].total)}</p>
                 </div>
                 {tables[selectedTable].orders.length > 0 && (
                   <button 

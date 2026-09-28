@@ -15,6 +15,9 @@ export const getOrderById = async (req: Request, res: Response) => {
       include: {
         items: {
           include: { producto: true }
+        },
+        local: {
+          select: { linkPago: true }
         }
       }
     });
@@ -30,11 +33,13 @@ export const getOrderById = async (req: Request, res: Response) => {
       pagoConfirmado: order.pagoConfirmado,
       total: order.total,
       metodoPago: order.metodoPago,
+      tipoOrden: order.tipoOrden,
       createdAt: order.createdAt,
+      linkPago: order.local.linkPago,
       items: order.items.map((item) => ({
         cantidad: item.cantidad,
-        nombre: item.producto.nombre,
-        precioUnitario: item.precioUnitario
+        precioUnitario: item.precioUnitario,
+        producto: { nombre: item.producto.nombre }
       }))
     });
   } catch (error) {

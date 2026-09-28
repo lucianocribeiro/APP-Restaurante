@@ -1,6 +1,7 @@
 import { X, CheckCircle } from 'lucide-react';
 import type { Order } from '../../types';
 import type { TableGroup } from './TableGrid';
+import { formatPrice } from '../../lib/format';
 
 interface TableDetailModalProps {
   selectedTable: string;
@@ -94,7 +95,7 @@ export const TableDetailModal = ({
                 <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${
                   order.metodoPago === 'Efectivo' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
                 }`}>
-                  {order.metodoPago === 'Efectivo' ? 'EFECTIVO' : 'MERCADO PAGO'}
+                  {order.metodoPago === 'Efectivo' ? 'EFECTIVO' : 'TARJETA BAC'}
                 </span>
               </div>
 
@@ -105,7 +106,7 @@ export const TableDetailModal = ({
                       <span className="font-black text-primary">{item.cantidad}x</span>
                       <span className="font-bold text-gray-300 text-sm">{item.producto.nombre}</span>
                     </div>
-                    <span className="font-black text-white text-sm">${item.precioUnitario * item.cantidad}</span>
+                    <span className="font-black text-white text-sm">{formatPrice(item.precioUnitario * item.cantidad)}</span>
                   </div>
                 ))}
               </div>
@@ -129,7 +130,7 @@ export const TableDetailModal = ({
         <div className="p-10 bg-black/40 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
           <div>
             <p className="text-gray-500 text-xs font-black uppercase tracking-widest mb-1">Total Acumulado</p>
-            <p className="text-5xl font-black text-primary tracking-tighter">${tableData.total}</p>
+            <p className="text-5xl font-black text-primary tracking-tighter">{formatPrice(tableData.total)}</p>
           </div>
           {tableData.orders.length > 0 && (
             <button

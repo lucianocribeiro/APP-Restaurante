@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Clock, CheckCircle, ChefHat, Utensils, ArrowLeft, RotateCcw, Star, Sparkles } from 'lucide-react';
+import { Clock, CheckCircle, ChefHat, Utensils, ArrowLeft, RotateCcw, Star, Sparkles, CreditCard } from 'lucide-react';
 import api from '../api/axios';
 import { getSocket } from '../lib/socket';
+import { formatPrice } from '../lib/format';
 
 const OrderStatus = () => {
   const { orderId } = useParams();
@@ -29,12 +30,12 @@ const OrderStatus = () => {
 
       const onStatusUpdated = (updatedOrder: any) => {
         if (updatedOrder.id.toString() === orderId.toString()) {
-          setOrder(updatedOrder);
+          setOrder((prev: any) => ({ ...prev, ...updatedOrder, linkPago: prev?.linkPago }));
         }
       };
       const onPaymentUpdated = (updatedOrder: any) => {
         if (updatedOrder.id.toString() === orderId.toString()) {
-          setOrder(updatedOrder);
+          setOrder((prev: any) => ({ ...prev, ...updatedOrder, linkPago: prev?.linkPago }));
         }
       };
 
@@ -86,14 +87,6 @@ const OrderStatus = () => {
         desc: 'Esperando confirmación.' 
       };
     }
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-      minimumFractionDigits: 0
-    }).format(price);
   };
 
   if (loading) return (
@@ -212,6 +205,23 @@ const OrderStatus = () => {
               <p className="text-4xl font-black text-white italic tracking-tighter leading-none">{formatPrice(order.total)}</p>
             </div>
           </div>
+
+          {order.metodoPago === 'Tarjeta BAC' && (
+            order.pagoConfirmado ? (
+              <div className="mt-8 flex items-center justify-center gap-2 py-4 rounded-2xl bg-green-500/10 border border-green-500/20 text-green-400 font-black text-xs uppercase tracking-widest">
+                <CheckCircle size={16} /> Pago confirmado
+              </div>
+            ) : order.linkPago && (
+              <a
+                href={order.linkPago}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-8 w-full bg-gradient-to-r from-primary to-orange-600 text-white py-4 rounded-2xl font-black uppercase tracking-[0.15em] text-xs flex items-center justify-center gap-3 shadow-2xl shadow-primary/30 active:scale-95 transition-all"
+              >
+                <CreditCard size={18} /> Pagar {formatPrice(order.total)} con tarjeta
+              </a>
+            )
+          )}
         </div>
 
         {/* Footer info */}

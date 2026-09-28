@@ -4,7 +4,6 @@ import { getMenuBySlug, placeOrder, getOrderById } from '../controllers/menuCont
 import { getOrders, updateOrderStatus, updateOrderPaymentStatus, getCategories, createProduct, getLocalSettings, updateLocalSettings, getAdminProducts, updateProductStock } from '../controllers/adminController';
 import { getKitchens, createKitchen, deleteKitchen } from '../controllers/kitchenController';
 import { getTables, createTable, deleteTable } from '../controllers/tableController';
-import { createPreference, webhook } from '../controllers/paymentController';
 import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
@@ -37,10 +36,5 @@ router.delete('/admin/tables/:id', authenticateToken, deleteTable);
 // Local settings
 router.get('/admin/local', authenticateToken, getLocalSettings);
 router.put('/admin/local', authenticateToken, updateLocalSettings);
-
-// Payment routes
-router.post('/payment/create-preference', createPreference);
-router.post('/payment/webhook', webhook);
-// Note: create-preference is intentionally public so unauthenticated customers can pay.
 
 export default router;

@@ -5,9 +5,6 @@ import { useAuthStore } from './context/authStore';
 const Menu = lazy(() => import('./pages/Menu'));
 const Login = lazy(() => import('./pages/Login'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
-const PaymentSuccess = lazy(() => import('./pages/PaymentSuccess'));
-const PaymentFailure = lazy(() => import('./pages/PaymentFailure'));
-const PaymentPending = lazy(() => import('./pages/PaymentPending'));
 const OrderStatus = lazy(() => import('./pages/OrderStatus'));
 const DemoLinks = lazy(() => import('./pages/DemoLinks'));
 const MozoDashboard = lazy(() => import('./pages/MozoDashboard'));
@@ -33,10 +30,7 @@ function App() {
           <Route path="/demo" element={<DemoLinks />} />
 
           <Route path="/m/:slug" element={<Menu />} />
-          <Route path="/success" element={<PaymentSuccess />} />
-          <Route path="/failure" element={<PaymentFailure />} />
-          <Route path="/pending" element={<PaymentPending />} />
-          <Route path="/status" element={<OrderStatus />} />
+          <Route path="/status/:orderId" element={<OrderStatus />} />
 
           <Route path="/admin/login" element={<Login />} />
           <Route

@@ -1,5 +1,6 @@
 import { ShoppingBag, Utensils, Clock, CheckCircle, ArrowRight } from 'lucide-react';
 import type { Order, Table } from '../../types';
+import { formatPrice } from '../../lib/format';
 
 interface TableGroup {
   mesa: string;
@@ -60,7 +61,7 @@ export const TableGrid = ({ tableList, onSelect }: TableGridProps) => {
           <div className="space-y-1 mb-8">
             <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Cuenta Actual</p>
             <div className="flex items-center gap-3">
-              <p className={`text-3xl font-black ${table.total > 0 ? 'text-primary' : 'text-gray-700'}`}>${table.total}</p>
+              <p className={`text-3xl font-black ${table.total > 0 ? 'text-primary' : 'text-gray-700'}`}>{formatPrice(table.total)}</p>
               {table.total > 0 && (
                 <div className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter ${
                   table.pagoConfirmado ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'

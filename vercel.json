@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "cd MenuApp-Frontend && npm ci",
+  "buildCommand": "cd MenuApp-Frontend && npm run build",
+  "outputDirectory": "MenuApp-Frontend/dist",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

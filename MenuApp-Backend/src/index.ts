@@ -27,6 +27,7 @@ const corsOrigin =
 const io = initSocket(httpServer, corsOrigin);
 
 const PORT = process.env.PORT || 3001;
+const HOST = process.env.HOST || '0.0.0.0';
 
 app.use(cors({ origin: corsOrigin }));
 app.use(express.json({ limit: '1mb' }));
@@ -62,8 +63,8 @@ io.on('connection', (socket) => {
   });
 });
 
-httpServer.listen(Number(PORT), '127.0.0.1', () => {
-  console.log(`Server is running on http://127.0.0.1:${PORT}`);
+httpServer.listen(Number(PORT), HOST, () => {
+  console.log(`Server is running on http://${HOST}:${PORT}`);
 });
 
 export { io, prisma };

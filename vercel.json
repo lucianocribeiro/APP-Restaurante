@@ -1,10 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "installCommand": "cd MenuApp-Frontend && npm ci",
-  "buildCommand": "cd MenuApp-Frontend && npm run build",
+  "installCommand": "cd MenuApp-Backend && npm ci && cd ../MenuApp-Frontend && npm ci",
+  "buildCommand": "cd MenuApp-Backend && npx prisma generate && npm run db:deploy && cd ../MenuApp-Frontend && npm run build",
   "outputDirectory": "MenuApp-Frontend/dist",
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

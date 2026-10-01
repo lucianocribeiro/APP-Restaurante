@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { getSocket } from '../lib/socket';
+import { getSocket, POLL_MS } from '../lib/socket';
 import api from '../api/axios';
 import type { Order } from '../types';
 
@@ -54,7 +54,7 @@ export function useAdminOrders() {
 
     const interval = setInterval(() => {
       if (!socketConnected.current) fetchOrders();
-    }, 30000);
+    }, POLL_MS);
 
     return () => {
       clearInterval(interval);

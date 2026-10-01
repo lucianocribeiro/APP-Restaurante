@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Clock, CheckCircle, ChefHat, Utensils, ArrowLeft, RotateCcw, Star, Sparkles, CreditCard } from 'lucide-react';
 import api from '../api/axios';
-import { getSocket } from '../lib/socket';
+import { getSocket, POLL_MS } from '../lib/socket';
 import { formatPrice } from '../lib/format';
 
 const OrderStatus = () => {
@@ -42,7 +42,10 @@ const OrderStatus = () => {
       socket.on('orderStatusUpdated', onStatusUpdated);
       socket.on('orderPaymentUpdated', onPaymentUpdated);
 
+      const interval = setInterval(fetchOrder, POLL_MS);
+
       return () => {
+        clearInterval(interval);
         socket.off('orderStatusUpdated', onStatusUpdated);
         socket.off('orderPaymentUpdated', onPaymentUpdated);
       };

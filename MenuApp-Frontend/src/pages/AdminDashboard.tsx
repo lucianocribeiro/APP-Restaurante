@@ -3,7 +3,7 @@ import { LayoutDashboard, ShoppingBag, Utensils, Settings, LogOut, CheckCircle, 
 import api from '../api/axios';
 import { useAuthStore } from '../context/authStore';
 import { useNavigate } from 'react-router-dom';
-import { getSocket } from '../lib/socket';
+import { getSocket, POLL_MS } from '../lib/socket';
 import { formatPrice } from '../lib/format';
 
 const AdminDashboard = () => {
@@ -77,7 +77,7 @@ const AdminDashboard = () => {
     socket.on('orderStatusUpdated', onStatusUpdated);
     socket.on('orderPaymentUpdated', onPaymentUpdated);
 
-    const interval = setInterval(() => { fetchOrders(); fetchTables(); }, 30000);
+    const interval = setInterval(() => { fetchOrders(); fetchTables(); }, POLL_MS);
     return () => {
       clearInterval(interval);
       socket.off('connect', onConnect);

@@ -1,42 +1,16 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
 import express from 'express';
-import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 import { createServer } from 'http';
+import app, { corsOrigin } from './app';
 import { prisma } from './lib/prisma';
 import { initSocket } from './lib/socket';
-import apiRoutes from './routes/api';
 
-const app = express();
 const httpServer = createServer(app);
-const FRONTEND_URL = process.env.FRONTEND_URL || '*';
-const corsOrigin =
-  FRONTEND_URL === '*'
-    ? true
-    : Array.from(
-        new Set([
-          FRONTEND_URL,
-          'http://localhost:5173',
-          'http://127.0.0.1:5173'
-        ])
-      );
-
 const io = initSocket(httpServer, corsOrigin);
 
 const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || '0.0.0.0';
-
-app.use(cors({ origin: corsOrigin }));
-app.use(express.json({ limit: '1mb' }));
-
-app.get('/api/health', (_req, res) => {
-  res.json({ ok: true });
-});
-
-app.use('/api', apiRoutes);
 
 const distPath = path.join(__dirname, '../../MenuApp-Frontend/dist');
 app.use(express.static(distPath));

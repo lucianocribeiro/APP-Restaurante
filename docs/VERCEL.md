@@ -1,38 +1,32 @@
-# Deploy en Vercel (solo frontend)
+# Deploy en Vercel (todo en un solo proyecto)
 
-Guía corta para conectar **este repo** a una cuenta Vercel propia.
+Frontend, API y base de datos corren en Vercel. No hace falta otro servidor.
 
-El backend (`MenuApp-Backend`) no se despliega en Vercel. Hay que hostearlo aparte y apuntar el front con `VITE_BACKEND_URL`.
+- El frontend (`MenuApp-Frontend`) se publica como sitio estático.
+- La API (`MenuApp-Backend`) corre como función en `/api` (`api/index.ts`).
+- La base es Postgres (Neon, desde Vercel Storage).
+- Los pedidos se actualizan solos cada 5 segundos (en Vercel no hay Socket.IO).
 
-## Settings recomendados en Vercel
+## Pasos
 
-| Setting | Valor |
-|---------|--------|
-| Root Directory | `MenuApp-Frontend` |
-| Framework | Vite |
-| Build Command | `npm run build` |
-| Output Directory | `dist` |
+1. **Importar el repo** en Vercel. No cambiar nada: Root Directory vacío, la configuración está en `vercel.json`.
+2. **Crear la base:** en el proyecto, Storage → Create Database → Neon (Postgres) → conectarla al proyecto. Esto crea solas `DATABASE_URL` y `DATABASE_URL_UNPOOLED`.
+3. **Agregar la variable** `JWT_SECRET` en Settings → Environment Variables (un texto largo al azar, 32+ caracteres).
+4. **Redeploy.**
 
-## Environment variables
+En cada deploy se aplican las migraciones. La primera vez, con la base vacía, se carga el menú de Entrepanes, las mesas y el usuario admin `admin@menuapp.com` / `admin123`. En los deploys siguientes no se toca lo que ya hay.
 
-| Variable | Ejemplo |
-|----------|---------|
-| `VITE_BACKEND_URL` | `https://tu-api.ejemplo.com` |
+## Rutas
 
-Debe ser el origen del backend **sin** path `/api` y **sin** barra final.
+- Menú: `/m/entrepanes`
+- Admin y mozo: `/admin/login`
+- Chequeo de la API: `/api/health`
 
-## Backend CORS
+## Volver a cargar el menú desde cero
 
-En el servidor API:
+Borra todos los datos (pedidos incluidos). Con las variables de la base en `MenuApp-Backend/.env`:
 
-```env
-FRONTEND_URL=https://tu-app.vercel.app
+```bash
+cd MenuApp-Backend
+npm run seed
 ```
-
-Si usás dominio custom en Vercel, agregalo también (el backend actual acepta un string; si necesitás varios orígenes, usá el valor que configure el deploy del API).
-
-## SPA
-
-`MenuApp-Frontend/vercel.json` ya reescribe rutas a `index.html` para React Router.
-
-Ver también el [README raíz](../README.md).

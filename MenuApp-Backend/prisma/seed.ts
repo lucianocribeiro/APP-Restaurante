@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -319,6 +319,11 @@ const MENU: Section[] = [
 ];
 
 async function main() {
+  if (process.argv.includes('--if-empty') && (await prisma.local.count()) > 0) {
+    console.log('ℹ️ La base ya tiene datos, no se vuelve a cargar el menú.');
+    return;
+  }
+
   console.log('🧹 Limpiando base de datos...');
   await prisma.orderItem.deleteMany();
   await prisma.order.deleteMany();

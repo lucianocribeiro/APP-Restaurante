@@ -95,8 +95,29 @@ const Menu = () => {
     const orderTotal = total();
 
     if (isStatic) {
+      let demoOrderId: number | null = null;
+      if (!HAS_BACKEND) {
+        try {
+          const response = await api.post('/orders', {
+            localId: local.id,
+            mesa: tipoOrden === 'retirar' ? 'Retirar' : selectedTableNum,
+            metodoPago: paymentMethod,
+            total: orderTotal,
+            tipoOrden,
+            items: items.map(item => ({
+              productId: item.productId,
+              cantidad: item.cantidad,
+              precioUnitario: item.precio,
+              aclaracion: ''
+            }))
+          });
+          demoOrderId = response.data.id;
+        } catch {
+          // Demo store unavailable: the WhatsApp order still works
+        }
+      }
       setLastOrder({
-        id: null,
+        id: demoOrderId,
         total: orderTotal,
         metodoPago: paymentMethod,
         whatsappUrl: local.whatsapp ? buildWhatsappUrl(orderTotal) : null,

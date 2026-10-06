@@ -1,15 +1,21 @@
 import axios from 'axios';
+import { demoAdapter } from './demo';
 
 // Same-origin `/api` (Apache/PM2 or Vite proxy). On Vercel set VITE_BACKEND_URL
 // to the teammate's API host, e.g. https://api.example.com
 const backend = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
 
-// On Vercel without VITE_BACKEND_URL there is no API: the menu uses static data.
+// On Vercel without VITE_BACKEND_URL there is no API: requests are answered by
+// the demo adapter with data stored in the browser.
 export const HAS_BACKEND = Boolean(backend) || import.meta.env.DEV;
 
 const api = axios.create({
   baseURL: backend ? `${backend}/api` : '/api',
 });
+
+if (!HAS_BACKEND) {
+  api.defaults.adapter = demoAdapter;
+}
 
 api.interceptors.request.use((config) => {
   try {

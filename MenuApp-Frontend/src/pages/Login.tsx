@@ -20,7 +20,7 @@ const Login = () => {
       const response = await api.post('/auth/login', { email, password });
       const { user: userData, token } = response.data;
       login(userData, token);
-      navigate('/admin/dashboard');
+      navigate(userData.rol === 'mozo' ? '/mozo/dashboard' : '/admin/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Credenciales inválidas. Por favor, reintentá.');
     } finally {

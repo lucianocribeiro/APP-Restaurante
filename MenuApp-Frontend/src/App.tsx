@@ -1,6 +1,8 @@
-import React, { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { lazy, Suspense, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuthStore } from './context/authStore';
+import { HAS_BACKEND } from './api/axios';
+import { demoUser } from './api/demo';
 
 const Menu = lazy(() => import('./pages/Menu'));
 const Login = lazy(() => import('./pages/Login'));
@@ -21,6 +23,22 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+const DemoEnter = ({ rol }: { rol: 'owner' | 'mozo' }) => {
+  const login = useAuthStore(state => state.login);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!HAS_BACKEND) {
+      login(demoUser(rol) as any, 'demo');
+      navigate(rol === 'mozo' ? '/mozo/dashboard' : '/admin/dashboard', { replace: true });
+    } else {
+      navigate('/admin/login', { replace: true });
+    }
+  }, [rol, login, navigate]);
+
+  return <PageLoader />;
+};
+
 function App() {
   return (
     <BrowserRouter>
@@ -33,6 +51,8 @@ function App() {
           <Route path="/status/:orderId" element={<OrderStatus />} />
 
           <Route path="/admin/login" element={<Login />} />
+          <Route path="/caja" element={<DemoEnter rol="owner" />} />
+          <Route path="/mozo" element={<DemoEnter rol="mozo" />} />
           <Route
             path="/admin/dashboard"
             element={

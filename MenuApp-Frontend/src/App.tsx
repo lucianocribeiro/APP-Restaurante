@@ -17,9 +17,9 @@ const PageLoader = () => (
   </div>
 );
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+const ProtectedRoute = ({ children, rol }: { children: React.ReactNode; rol: 'owner' | 'mozo' }) => {
   const token = useAuthStore(state => state.token);
-  if (!token) return <Navigate to="/admin/login" replace />;
+  if (!token) return HAS_BACKEND ? <Navigate to="/admin/login" replace /> : <DemoEnter rol={rol} />;
   return <>{children}</>;
 };
 
@@ -44,19 +44,19 @@ function App() {
     <BrowserRouter>
       <Suspense fallback={<PageLoader />}>
         <Routes>
-          <Route path="/" element={<Navigate to="/m/entrepanes" replace />} />
+          <Route path="/" element={HAS_BACKEND ? <Navigate to="/m/entrepanes" replace /> : <DemoLinks />} />
           <Route path="/demo" element={<DemoLinks />} />
 
           <Route path="/m/:slug" element={<Menu />} />
           <Route path="/status/:orderId" element={<OrderStatus />} />
 
-          <Route path="/admin/login" element={<Login />} />
+          <Route path="/admin/login" element={HAS_BACKEND ? <Login /> : <Navigate to="/" replace />} />
           <Route path="/caja" element={<DemoEnter rol="owner" />} />
           <Route path="/mozo" element={<DemoEnter rol="mozo" />} />
           <Route
             path="/admin/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute rol="owner">
                 <AdminDashboard />
               </ProtectedRoute>
             }
@@ -64,7 +64,7 @@ function App() {
           <Route
             path="/mozo/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute rol="mozo">
                 <MozoDashboard />
               </ProtectedRoute>
             }

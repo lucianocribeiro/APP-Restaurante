@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Search, Plus, Minus, X, Utensils, CheckCircle, ArrowRight, Clock, CreditCard, MessageCircle, Instagram } from 'lucide-react';
+import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { ShoppingCart, Search, Plus, Minus, X, Utensils, CheckCircle, ArrowRight, ArrowLeft, Clock, CreditCard, MessageCircle, Instagram } from 'lucide-react';
 import api, { HAS_BACKEND } from '../api/axios';
 import { useCartStore } from '../context/cartStore';
 import { formatPrice } from '../lib/format';
@@ -271,6 +271,14 @@ const Menu = () => {
         <div className="absolute inset-0 opacity-[0.07]">
           <img src={`/images/${local.slug}/cover.jpg`} alt="" className="w-full h-full object-cover" />
         </div>
+        {!HAS_BACKEND && (
+          <Link
+            to="/"
+            className="absolute top-3 left-3 z-20 flex items-center gap-1 bg-white/90 border border-peach text-brand text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full shadow-sm"
+          >
+            <ArrowLeft size={12} /> Vistas
+          </Link>
+        )}
         <div className="relative z-10 flex flex-col items-center text-center px-4 pt-8 pb-6 max-w-3xl mx-auto">
           {local.logo && (
             <img

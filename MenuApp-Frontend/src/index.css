@@ -2,6 +2,16 @@
 
 @import "tailwindcss";
 
+/* Colores de Entrepanes (PDF del menú) */
+@theme {
+  --color-primary: #C8794A;
+  --color-primary-dark: #A65F35;
+  --color-brand: #763624;
+  --color-brand-dark: #5A2819;
+  --color-peach: #F1D5BC;
+  --color-cream: #FAEDE0;
+}
+
 :root {
   --primary: #FF4D1C;
   --primary-dark: #E03A0A;

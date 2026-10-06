@@ -4,6 +4,9 @@ import axios from 'axios';
 // to the teammate's API host, e.g. https://api.example.com
 const backend = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
 
+// On Vercel without VITE_BACKEND_URL there is no API: the menu uses static data.
+export const HAS_BACKEND = Boolean(backend) || import.meta.env.DEV;
+
 const api = axios.create({
   baseURL: backend ? `${backend}/api` : '/api',
 });

@@ -26,7 +26,7 @@ function App() {
     <BrowserRouter>
       <Suspense fallback={<PageLoader />}>
         <Routes>
-          <Route path="/" element={<DemoLinks />} />
+          <Route path="/" element={<Navigate to="/m/entrepanes" replace />} />
           <Route path="/demo" element={<DemoLinks />} />
 
           <Route path="/m/:slug" element={<Menu />} />

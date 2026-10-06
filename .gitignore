@@ -42,3 +42,6 @@ Thumbs.db
 # Misc
 *.local
 config/
+
+# Backend fuera del repo (deploy solo frontend)
+MenuApp-Backend/

@@ -5,6 +5,7 @@ import api, { HAS_BACKEND } from '../api/axios';
 import { useCartStore } from '../context/cartStore';
 import { formatPrice } from '../lib/format';
 import { ENTREPANES_LOCAL } from '../data/entrepanes';
+import SuggestionModal from '../components/SuggestionModal';
 import type { PaymentMethod } from '../types';
 
 type LastOrder = {
@@ -34,6 +35,7 @@ const Menu = () => {
   const [placingOrder, setPlacingOrder] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Efectivo');
   const [tipoOrden, setTipoOrden] = useState<'salon' | 'retirar'>('salon');
+  const [isSuggestionOpen, setIsSuggestionOpen] = useState(false);
 
   const { items, addItem, removeItem, total, clearCart } = useCartStore();
 
@@ -249,8 +251,19 @@ const Menu = () => {
             >
               {isMozo ? 'Volver al panel' : 'Volver al menú'}
             </button>
+            {!isMozo && (
+              <button
+                onClick={() => setIsSuggestionOpen(true)}
+                className="text-brand/80 hover:text-brand text-xs font-bold uppercase tracking-wider py-2"
+              >
+                Déjanos tu sugerencia
+              </button>
+            )}
           </div>
         </div>
+        {isSuggestionOpen && (
+          <SuggestionModal local={local} mesa={selectedTableNum} onClose={() => setIsSuggestionOpen(false)} />
+        )}
       </div>
     );
   }
@@ -430,6 +443,25 @@ const Menu = () => {
           </section>
         ))}
       </main>
+
+      {/* Sugerencias */}
+      {!isMozo && (
+        <div className="px-4 sm:px-8 mt-12 max-w-3xl mx-auto">
+          <div className="bg-white border border-peach rounded-3xl p-6 text-center shadow-sm">
+            <h2 className="text-xl font-black text-brand">¿Cómo fue tu experiencia?</h2>
+            <p className="text-sm text-gray-500 mt-1">Tu opinión nos ayuda a mejorar.</p>
+            <button
+              onClick={() => setIsSuggestionOpen(true)}
+              className="mt-4 bg-brand hover:bg-brand-dark text-white px-6 py-3 rounded-2xl font-bold uppercase tracking-wider text-xs transition-colors"
+            >
+              Déjanos tu sugerencia
+            </button>
+          </div>
+        </div>
+      )}
+      {isSuggestionOpen && (
+        <SuggestionModal local={local} mesa={selectedTableNum} onClose={() => setIsSuggestionOpen(false)} />
+      )}
 
       {/* Pie con redes */}
       {(local.instagram || local.whatsapp) && (

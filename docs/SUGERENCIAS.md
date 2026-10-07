@@ -1,6 +1,6 @@
 # Sugerencias (Airtable o Google Sheets)
 
-El menú tiene un botón "Déjanos tu sugerencia". Lo recibe la función `api/sugerencias.js` de Vercel y lo guarda en Airtable **o** en Google Sheets, según las variables que estén cargadas en Vercel (Settings → Environment Variables). Después de cargarlas, hacer Redeploy.
+El menú tiene un botón "Déjanos tu sugerencia". Lo recibe la función `MenuApp-Frontend/api/sugerencias.js` de Vercel y lo guarda en Airtable **o** en Google Sheets, según las variables que estén cargadas en Vercel (Settings → Environment Variables). Después de cargarlas, hacer Redeploy.
 
 Mientras no haya ninguna configurada, el formulario ofrece mandar la sugerencia por WhatsApp.
 

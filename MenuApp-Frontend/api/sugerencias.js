@@ -45,7 +45,7 @@ const saveToSheets = async (row) => {
   }
 };
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ ok: false, error: 'method_not_allowed' });
@@ -88,4 +88,4 @@ module.exports = async (req, res) => {
     console.error('Error guardando sugerencia:', error);
     return res.status(502).json({ ok: false, error: 'no_se_pudo_guardar' });
   }
-};
+}

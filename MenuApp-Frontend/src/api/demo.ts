@@ -30,10 +30,20 @@ type DemoOrder = {
   items: DemoOrderItem[];
 };
 
+type DemoUser = { id: number; nombre: string; email: string; password: string; rol: 'owner' | 'mozo'; localId: number };
+
+const seedUsers = (): DemoUser[] => [
+  { id: 1, nombre: 'Caja', email: 'caja@entrepanes.com', password: 'demo', rol: 'owner', localId: ENTREPANES_LOCAL.id },
+  { id: 2, nombre: 'Mozo', email: 'mozo@entrepanes.com', password: 'demo', rol: 'mozo', localId: ENTREPANES_LOCAL.id },
+];
+
+const publicUser = ({ password: _password, ...user }: DemoUser) => user;
+
 type DemoDb = {
   nextId: number;
   orders: DemoOrder[];
   tables: { id: number; numero: string; localId: number }[];
+  users: DemoUser[];
   kitchens: { id: number; nombre: string; localId: number }[];
   stock: Record<number, number>;
   extraProducts: any[];
@@ -97,6 +107,7 @@ const createDb = (): DemoDb => {
       order(101, '7', 'Entregado', 'Tarjeta BAC', 35, [['Pancakes', 1], ['Infusión fría', 2]], true),
     ],
     tables: ENTREPANES_LOCAL.mesas.map((m) => ({ id: m.id, numero: m.numero, localId: ENTREPANES_LOCAL.id })),
+    users: seedUsers(),
     kitchens: [
       { id: 1, nombre: 'Cocina', localId: ENTREPANES_LOCAL.id },
       { id: 2, nombre: 'Barra', localId: ENTREPANES_LOCAL.id },
@@ -120,7 +131,9 @@ const load = (): DemoDb => {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const db: DemoDb = JSON.parse(raw);
-      if (assignMissingCodes(db)) save(db);
+      const missingUsers = !db.users;
+      if (missingUsers) db.users = seedUsers();
+      if (assignMissingCodes(db) || missingUsers) save(db);
       return db;
     }
   } catch {
@@ -169,7 +182,12 @@ export const demoAdapter: AxiosAdapter = async (config) => {
   let m: RegExpMatchArray | null;
 
   if (method === 'post' && url === '/auth/login') {
-    const email = String(body.email || 'caja@entrepanes.com');
+    const email = String(body.email || 'caja@entrepanes.com').trim().toLowerCase();
+    const user = db.users.find((u) => u.email === email);
+    if (user) {
+      if (user.password !== body.password) return reply(config, { message: 'Credenciales inválidas' }, 401);
+      return reply(config, { token: 'demo', user: { ...demoUser(user.rol, user.email), id: user.id } });
+    }
     return reply(config, { token: 'demo', user: demoUser(email.includes('mozo') ? 'mozo' : 'owner', email) });
   }
 
@@ -287,6 +305,37 @@ export const demoAdapter: AxiosAdapter = async (config) => {
 
   if (method === 'delete' && (m = url.match(/^\/admin\/tables\/(\d+)$/))) {
     db.tables = db.tables.filter((t) => t.id !== Number(m![1]));
+    save(db);
+    return reply(config, { ok: true });
+  }
+
+  if (url === '/admin/users') {
+    if (method === 'post') {
+      const email = String(body.email || '').trim().toLowerCase();
+      if (!email || !body.password) return reply(config, { message: 'Email y contraseña son obligatorios' }, 400);
+      if (db.users.some((u) => u.email === email)) return reply(config, { message: 'Ya existe un usuario con ese email' }, 409);
+      const user: DemoUser = {
+        id: Date.now(),
+        nombre: String(body.nombre || '').trim(),
+        email,
+        password: String(body.password),
+        rol: body.rol === 'owner' ? 'owner' : 'mozo',
+        localId: ENTREPANES_LOCAL.id,
+      };
+      db.users.push(user);
+      save(db);
+      return reply(config, publicUser(user), 201);
+    }
+    return reply(config, db.users.map(publicUser));
+  }
+
+  if (method === 'delete' && (m = url.match(/^\/admin\/users\/(\d+)$/))) {
+    const user = db.users.find((u) => u.id === Number(m![1]));
+    if (!user) return reply(config, { message: 'User not found' }, 404);
+    if (user.rol === 'owner' && db.users.filter((u) => u.rol === 'owner').length === 1) {
+      return reply(config, { message: 'Debe quedar al menos un usuario de Caja' }, 400);
+    }
+    db.users = db.users.filter((u) => u.id !== user.id);
     save(db);
     return reply(config, { ok: true });
   }

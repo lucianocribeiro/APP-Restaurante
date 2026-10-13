@@ -443,6 +443,41 @@ Elimina una mesa.
 
 ---
 
+### Usuarios (Admin)
+
+Solo para usuarios con rol `owner` (Caja). Nunca se devuelve la contraseña.
+
+---
+
+#### `GET /api/admin/users`
+
+Lista los usuarios del local.
+
+**Respuesta `200`:** Array de `{ id, nombre, email, rol, localId }`.
+
+---
+
+#### `POST /api/admin/users`
+
+Crea un usuario para el local del usuario autenticado. `rol` es `owner` (Caja) o `mozo`.
+
+**Body:**
+```json
+{ "nombre": "Ana", "email": "ana@entrepanes.com", "password": "secreto", "rol": "mozo" }
+```
+
+**Respuesta `201`:** Usuario creado (sin `password`). `409` si el email ya existe.
+
+---
+
+#### `DELETE /api/admin/users/:id`
+
+Elimina un usuario. Devuelve `400` si es el último usuario `owner` del local.
+
+**Respuesta `200`:** `{ "ok": true }`
+
+---
+
 ### Configuración del local (Admin)
 
 ---
@@ -505,5 +540,8 @@ Actualiza la configuración del local.
 | GET | `/api/admin/tables` | Sí | Listar mesas |
 | POST | `/api/admin/tables` | Sí | Crear mesa |
 | DELETE | `/api/admin/tables/:id` | Sí | Eliminar mesa |
+| GET | `/api/admin/users` | Sí | Listar usuarios del local |
+| POST | `/api/admin/users` | Sí | Crear usuario (Caja o Mozo) |
+| DELETE | `/api/admin/users/:id` | Sí | Eliminar usuario |
 | GET | `/api/admin/local` | Sí | Ver config del local |
 | PUT | `/api/admin/local` | Sí | Actualizar config del local |

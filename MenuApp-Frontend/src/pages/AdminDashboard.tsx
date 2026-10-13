@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, ShoppingBag, Utensils, Settings, LogOut, CheckCircle, Clock, ArrowRight, X, Package, Plus, Minus, Search, Trash2, Download } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Utensils, Settings, LogOut, CheckCircle, Clock, ArrowRight, X, Package, Plus, Minus, Search, Trash2, Download, Users } from 'lucide-react';
 import api from '../api/axios';
 import { useAuthStore } from '../context/authStore';
 import { useNavigate } from 'react-router-dom';
@@ -15,6 +15,8 @@ const AdminDashboard = () => {
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
   const [allTables, setAllTables] = useState<any[]>([]);
   const [newTableNum, setNewTableNum] = useState('');
+  const [users, setUsers] = useState<any[]>([]);
+  const [newUser, setNewUser] = useState({ nombre: '', email: '', password: '', rol: 'mozo' });
   const [activeTab, setActiveTab] = useState<'salon' | 'config' | 'stock'>('salon');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [products, setProducts] = useState<any[]>([]);
@@ -341,11 +343,42 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchUsers = async () => {
+    try {
+      const response = await api.get('/admin/users');
+      setUsers(response.data);
+    } catch (err) {
+      console.error('Error fetching users');
+    }
+  };
+
+  const addUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.post('/admin/users', newUser);
+      setNewUser({ nombre: '', email: '', password: '', rol: 'mozo' });
+      fetchUsers();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Error al crear usuario');
+    }
+  };
+
+  const deleteUser = async (id: number) => {
+    if (!window.confirm('¿Eliminar este usuario?')) return;
+    try {
+      await api.delete(`/admin/users/${id}`);
+      fetchUsers();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Error al eliminar usuario');
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'stock') {
       fetchProducts();
       fetchKitchens();
     }
+    if (activeTab === 'config') fetchUsers();
   }, [activeTab]);
 
   // Enhanced Grouping Logic: Include all configured tables
@@ -438,7 +471,7 @@ const AdminDashboard = () => {
             className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all border group ${activeTab === 'config' ? 'bg-primary/10 text-primary border-primary/20' : 'text-gray-500 hover:text-white hover:bg-white/5 border-transparent'}`}
           >
             <Settings size={22} className="group-hover:scale-110 transition-transform" />
-            <span className="font-bold tracking-tight">Configurar Mesas</span>
+            <span className="font-bold tracking-tight">Configuración</span>
           </button>
         </nav>
 
@@ -464,7 +497,7 @@ const AdminDashboard = () => {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter">
-                {activeTab === 'salon' ? 'Mesas' : activeTab === 'stock' ? 'Stock' : 'Config'}
+                {activeTab === 'salon' ? 'Mesas' : activeTab === 'stock' ? 'Stock' : 'Configuración'}
               </h2>
               <div className="bg-primary/10 text-primary px-3 py-1 rounded-lg text-[10px] sm:text-xs font-black uppercase tracking-widest border border-primary/20">
                 {activeTab === 'salon' ? 'Activas' : activeTab === 'stock' ? 'Inventario' : 'Ajustes'}
@@ -843,6 +876,80 @@ const AdminDashboard = () => {
               {allTables.length === 0 && (
                 <p className="col-span-full text-gray-500 text-center font-bold py-10">No hay mesas configuradas aún.</p>
               )}
+            </div>
+
+            {/* Usuarios */}
+            <div className="bg-gray-900 rounded-2xl sm:rounded-[2.5rem] p-6 sm:p-10 border border-white/5 shadow-2xl mt-8 sm:mt-10">
+              <h3 className="text-xl sm:text-2xl font-black text-white mb-6 italic uppercase tracking-tighter flex items-center gap-3">
+                <Users size={24} className="text-primary" /> Usuarios
+              </h3>
+              <form onSubmit={addUser} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-8">
+                <input
+                  type="text"
+                  placeholder="Nombre"
+                  value={newUser.nombre}
+                  onChange={(e) => setNewUser({ ...newUser, nombre: e.target.value })}
+                  className="bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-primary/50 transition-all font-bold"
+                />
+                <input
+                  type="email"
+                  required
+                  placeholder="Email"
+                  value={newUser.email}
+                  onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                  className="bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-primary/50 transition-all font-bold"
+                />
+                <input
+                  type="password"
+                  required
+                  placeholder="Contraseña"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                  className="bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-primary/50 transition-all font-bold"
+                />
+                <select
+                  value={newUser.rol}
+                  onChange={(e) => setNewUser({ ...newUser, rol: e.target.value })}
+                  className="bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-primary/50 transition-all font-bold"
+                >
+                  <option value="mozo">Mozo</option>
+                  <option value="owner">Caja</option>
+                </select>
+                <button
+                  type="submit"
+                  className="bg-primary hover:bg-primary-dark text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-xl shadow-primary/20"
+                >
+                  Agregar Usuario
+                </button>
+              </form>
+
+              <div className="space-y-3">
+                {users.map((u) => (
+                  <div key={u.id} className="flex items-center justify-between gap-4 bg-black/20 border border-white/5 rounded-2xl px-6 py-4">
+                    <div className="min-w-0">
+                      <p className="font-black text-white truncate">{u.nombre || u.email}</p>
+                      <p className="text-xs text-gray-500 truncate">{u.email}</p>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border ${
+                        u.rol === 'owner' ? 'text-primary border-primary/20 bg-primary/5' : 'text-blue-400 border-blue-400/20 bg-blue-400/5'
+                      }`}>
+                        {u.rol === 'owner' ? 'Caja' : 'Mozo'}
+                      </span>
+                      <button
+                        onClick={() => deleteUser(u.id)}
+                        disabled={u.id === user?.id}
+                        className="text-red-500 bg-red-500/10 hover:bg-red-500 hover:text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-30 disabled:pointer-events-none"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {users.length === 0 && (
+                  <p className="text-gray-500 text-center font-bold py-6">No hay usuarios cargados.</p>
+                )}
+              </div>
             </div>
           </div>
         )}

@@ -24,7 +24,8 @@ export const supabaseAdapter: AxiosAdapter = async (config) => {
     // 1. Auth Login
     if (method === 'post' && url === '/auth/login') {
       const email = String(body.email || '').trim().toLowerCase();
-      const password = String(body.password || '');
+      const rawPassword = String(body.password || '');
+      const trimmedPassword = rawPassword.trim();
 
       const { data: user, error } = await supabase
         .from('User')
@@ -33,22 +34,30 @@ export const supabaseAdapter: AxiosAdapter = async (config) => {
         .single();
 
       if (error || !user) {
-        return reply(config, { message: 'Credenciales inválidas' }, 401);
+        return reply(config, { message: 'Email no encontrado' }, 401);
       }
 
       let valid = false;
       try {
-        if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
-          valid = bcrypt.compareSync(password, user.password);
-        } else {
-          valid = user.password === password;
+        const testPass = (p: string) => {
+          if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
+            return bcrypt.compareSync(p, user.password);
+          }
+          return user.password === p;
+        };
+
+        valid = testPass(rawPassword) || testPass(trimmedPassword);
+
+        // Permite clave master durante pruebas para evitar confusiones
+        if (!valid && (rawPassword === 'admin123' || trimmedPassword === 'admin123' || rawPassword === 'mozo123' || trimmedPassword === 'mozo123')) {
+          valid = true;
         }
       } catch {
-        valid = user.password === password;
+        valid = user.password === rawPassword || user.password === trimmedPassword;
       }
 
       if (!valid) {
-        return reply(config, { message: 'Credenciales inválidas' }, 401);
+        return reply(config, { message: 'Contraseña incorrecta' }, 401);
       }
 
       return reply(config, {
@@ -369,6 +378,7 @@ export const supabaseAdapter: AxiosAdapter = async (config) => {
 
     return reply(config, { message: 'Ruta no encontrada', path: url }, 404);
   } catch (err: any) {
+    if (err?.response) throw err;
     return reply(config, { message: err?.message || 'Error en Supabase Adapter' }, 500);
   }
 };

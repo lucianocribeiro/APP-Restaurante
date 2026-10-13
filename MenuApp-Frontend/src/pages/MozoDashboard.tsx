@@ -5,6 +5,7 @@ import { useAuthStore } from '../context/authStore';
 import { useNavigate } from 'react-router-dom';
 import { getSocket, POLL_MS } from '../lib/socket';
 import { formatPrice } from '../lib/format';
+import { orderNumber } from '../lib/orderCode';
 
 const MozoDashboard = () => {
   const [orders, setOrders] = useState<any[]>([]);
@@ -304,7 +305,7 @@ const MozoDashboard = () => {
                       <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 blur-2xl rounded-full"></div>
                       
                       <div className="flex justify-between items-center mb-8 relative z-10">
-                        <span className="text-[10px] font-black text-gray-600 tracking-[0.2em] uppercase">Pedido #{order.id}</span>
+                        <span className="text-[10px] font-black text-gray-600 tracking-[0.2em] uppercase">Pedido #{orderNumber(order)}</span>
                         <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${
                           order.estado === 'Entregado' ? 'bg-green-500/10 text-green-500 border-green-500/10' : 
                           order.estado === 'Listo' ? 'bg-blue-500/10 text-blue-500 border-blue-500/10' :

@@ -144,10 +144,13 @@ Crea un nuevo pedido. Emite el evento `newOrder` por Socket.io al admin y mozos.
 
 Cuando `tipoOrden` es `"retirar"`, el frontend envía `mesa: "Retirar"`.
 
+`codigo` es el número de pedido que ve el cliente: `S{mesa}-NNN` para salón (ej. `S1-001`), `R-NNN` para retirar y `D-NNN` para delivery. La secuencia es por prefijo. Si el backend no lo devuelve, el frontend muestra el `id`.
+
 **Respuesta exitosa `201`:**
 ```json
 {
   "id": 42,
+  "codigo": "S3-001",
   "localId": 1,
   "mesa": "3",
   "estado": "Recibido",

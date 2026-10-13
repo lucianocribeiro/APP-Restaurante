@@ -1,5 +1,6 @@
 import type { AxiosAdapter, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { ENTREPANES_LOCAL } from '../data/entrepanes';
+import { nextOrderCode, orderCodePrefix } from '../lib/orderCode';
 
 // Demo mode (no backend): answers the API from data stored in this browser.
 // Orders placed from the menu show up in Caja and Mozo on the same device.
@@ -17,6 +18,7 @@ type DemoOrderItem = {
 
 type DemoOrder = {
   id: number;
+  codigo?: string;
   localId: number;
   mesa: string;
   estado: string;
@@ -50,6 +52,21 @@ const baseProducts = () =>
 
 const minutesAgo = (m: number) => new Date(Date.now() - m * 60000).toISOString();
 
+const newOrderCode = (db: DemoDb, tipoOrden: string, mesa: string) =>
+  nextOrderCode(orderCodePrefix(tipoOrden, mesa), db.orders.map((o) => o.codigo));
+
+// Orders are stored newest first; codes are handed out oldest first.
+const assignMissingCodes = (db: DemoDb) => {
+  let changed = false;
+  for (const order of [...db.orders].reverse()) {
+    if (!order.codigo) {
+      order.codigo = newOrderCode(db, order.tipoOrden, order.mesa);
+      changed = true;
+    }
+  }
+  return changed;
+};
+
 const createDb = (): DemoDb => {
   const products = baseProducts();
   const pick = (nombre: string) => products.find((p) => p.nombre === nombre) ?? products[0];
@@ -71,7 +88,7 @@ const createDb = (): DemoDb => {
     };
   };
 
-  return {
+  const db: DemoDb = {
     nextId: 105,
     orders: [
       order(104, '2', 'Recibido', 'Efectivo', 3, [['Desayuno Criollo', 2], ['Latte o Cappuccino 12 oz', 2]]),
@@ -94,12 +111,18 @@ const createDb = (): DemoDb => {
       linkPago: ENTREPANES_LOCAL.linkPago,
     },
   };
+  assignMissingCodes(db);
+  return db;
 };
 
 const load = (): DemoDb => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const db: DemoDb = JSON.parse(raw);
+      if (assignMissingCodes(db)) save(db);
+      return db;
+    }
   } catch {
     // Corrupt demo data: start over
   }
@@ -156,14 +179,16 @@ export const demoAdapter: AxiosAdapter = async (config) => {
   }
 
   if (method === 'post' && url === '/orders') {
+    const tipoOrden = body.tipoOrden ?? 'salon';
     const order: DemoOrder = {
       id: db.nextId++,
+      codigo: newOrderCode(db, tipoOrden, body.mesa),
       localId: ENTREPANES_LOCAL.id,
       mesa: body.mesa,
       estado: 'Recibido',
       total: body.total,
       metodoPago: body.metodoPago,
-      tipoOrden: body.tipoOrden ?? 'salon',
+      tipoOrden,
       pagoConfirmado: false,
       createdAt: new Date().toISOString(),
       items: (body.items || []).map((i: any, idx: number) => ({

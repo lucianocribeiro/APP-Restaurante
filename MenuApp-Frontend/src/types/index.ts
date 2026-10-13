@@ -74,6 +74,7 @@ export interface OrderItem {
 
 export interface Order {
   id: number;
+  codigo?: string;
   localId: number;
   mesa: string;
   estado: string;

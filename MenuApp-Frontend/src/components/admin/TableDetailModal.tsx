@@ -2,6 +2,7 @@ import { X, CheckCircle } from 'lucide-react';
 import type { Order } from '../../types';
 import type { TableGroup } from './TableGrid';
 import { formatPrice } from '../../lib/format';
+import { orderNumber } from '../../lib/orderCode';
 
 interface TableDetailModalProps {
   selectedTable: string;
@@ -70,7 +71,7 @@ export const TableDetailModal = ({
           {tableData.orders.map((order) => (
             <div key={order.id} className="bg-black/20 rounded-[2rem] p-6 border border-white/5">
               <div className="flex justify-between items-center mb-6">
-                <span className="text-xs font-black text-gray-500 tracking-widest uppercase">Pedido #{order.id}</span>
+                <span className="text-xs font-black text-gray-500 tracking-widest uppercase">Pedido #{orderNumber(order)}</span>
                 <div className="flex items-center gap-3">
                   <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${
                     order.estado === 'Entregado' ? 'bg-green-500/10 text-green-500 border-green-500/10' : 'bg-orange-500/10 text-orange-500 border-orange-500/10'

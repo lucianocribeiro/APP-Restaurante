@@ -4,6 +4,7 @@ import { Clock, CheckCircle, ChefHat, Utensils, ArrowLeft, RotateCcw, Star, Spar
 import api from '../api/axios';
 import { getSocket, POLL_MS } from '../lib/socket';
 import { formatPrice } from '../lib/format';
+import { orderNumber } from '../lib/orderCode';
 
 const OrderStatus = () => {
   const { orderId } = useParams();
@@ -135,7 +136,7 @@ const OrderStatus = () => {
           </button>
           <div className="text-center">
             <h1 className="text-xl font-black uppercase italic tracking-widest leading-none mb-1">Estado de <span className="text-primary">Pedido</span></h1>
-            <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em]">Orden #{order.id.toString().slice(-4)}</p>
+            <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em]">Pedido #{orderNumber(order)}</p>
           </div>
           <div className="w-12 h-12"></div> {/* Spacer */}
         </div>

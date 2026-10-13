@@ -4,12 +4,14 @@ import { ShoppingCart, Search, Plus, Minus, X, Utensils, CheckCircle, ArrowRight
 import api, { HAS_BACKEND } from '../api/axios';
 import { useCartStore } from '../context/cartStore';
 import { formatPrice } from '../lib/format';
+import { orderNumber } from '../lib/orderCode';
 import { ENTREPANES_LOCAL } from '../data/entrepanes';
 import SuggestionModal from '../components/SuggestionModal';
 import type { PaymentMethod } from '../types';
 
 type LastOrder = {
   id: number | null;
+  numero: string | null;
   total: number;
   metodoPago: PaymentMethod;
   whatsappUrl: string | null;
@@ -71,13 +73,14 @@ const Menu = () => {
     fetchMenu();
   }, [slug]);
 
-  const buildWhatsappUrl = (orderTotal: number) => {
+  const buildWhatsappUrl = (orderTotal: number, numero: string | null) => {
     const lines = items.map(
       (item) => `• ${item.cantidad} x ${item.nombre} — ${formatPrice(item.precio * item.cantidad)}`
     );
     const destino = tipoOrden === 'retirar' ? 'Para retirar' : `Mesa ${selectedTableNum}`;
     const message = [
       `Hola ${local.nombre}, quiero hacer este pedido:`,
+      ...(numero ? [`Pedido #${numero}`] : []),
       '',
       ...lines,
       '',
@@ -98,6 +101,7 @@ const Menu = () => {
 
     if (isStatic) {
       let demoOrderId: number | null = null;
+      let demoOrderNumber: string | null = null;
       if (!HAS_BACKEND) {
         try {
           const response = await api.post('/orders', {
@@ -114,15 +118,17 @@ const Menu = () => {
             }))
           });
           demoOrderId = response.data.id;
+          demoOrderNumber = orderNumber(response.data);
         } catch {
           // Demo store unavailable: the WhatsApp order still works
         }
       }
       setLastOrder({
         id: demoOrderId,
+        numero: demoOrderNumber,
         total: orderTotal,
         metodoPago: paymentMethod,
-        whatsappUrl: local.whatsapp ? buildWhatsappUrl(orderTotal) : null,
+        whatsappUrl: local.whatsapp ? buildWhatsappUrl(orderTotal, demoOrderNumber) : null,
       });
       setIsOrderSuccess(true);
       setIsCartOpen(false);
@@ -145,7 +151,13 @@ const Menu = () => {
           aclaracion: ''
         }))
       });
-      setLastOrder({ id: response.data.id, total: orderTotal, metodoPago: paymentMethod, whatsappUrl: null });
+      setLastOrder({
+        id: response.data.id,
+        numero: orderNumber(response.data),
+        total: orderTotal,
+        metodoPago: paymentMethod,
+        whatsappUrl: null,
+      });
       setIsOrderSuccess(true);
       setIsCartOpen(false);
       clearCart();
@@ -204,6 +216,12 @@ const Menu = () => {
           </p>
 
           <div className="bg-white border border-peach rounded-3xl p-6 mb-6 shadow-sm">
+            {lastOrder?.numero && (
+              <div className="pb-5 mb-5 border-b border-peach">
+                <p className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-1">Tu pedido</p>
+                <p className="text-3xl font-black text-brand tracking-tight">#{lastOrder.numero}</p>
+              </div>
+            )}
             <p className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-1">Total a pagar</p>
             <p className="text-4xl font-black text-brand tracking-tight mb-5">{lastOrder ? formatPrice(lastOrder.total) : ''}</p>
 

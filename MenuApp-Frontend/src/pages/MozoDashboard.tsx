@@ -7,6 +7,14 @@ import { getSocket, POLL_MS } from '../lib/socket';
 import { formatPrice } from '../lib/format';
 import { orderNumber } from '../lib/orderCode';
 
+const PaymentBadge = ({ pagado }: { pagado: boolean }) => (
+  <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border ${
+    pagado ? 'text-green-500 border-green-500/20 bg-green-500/5' : 'text-red-500 border-red-500/20 bg-red-500/5'
+  }`}>
+    {pagado ? 'Pagado' : 'Pendiente de pago'}
+  </span>
+);
+
 const MozoDashboard = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -103,7 +111,8 @@ const MozoDashboard = () => {
       mesa: mesaNum,
       orders: tableOrders,
       total: tableOrders.reduce((sum: number, o: any) => sum + o.total, 0),
-      status: tableOrders.length > 0 ? 'Recibido' : 'Libre'
+      status: tableOrders.length > 0 ? 'Recibido' : 'Libre',
+      pagado: tableOrders.length > 0 && tableOrders.every((o: any) => o.pagoConfirmado),
     };
 
     if (tableOrders.length > 0) {
@@ -240,6 +249,12 @@ const MozoDashboard = () => {
                       {table.status}
                     </span>
                   </div>
+                  {table.orders.length > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Pago</span>
+                      <PaymentBadge pagado={table.pagado} />
+                    </div>
+                  )}
                   {table.total > 0 && (
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Cuenta</span>
@@ -325,6 +340,13 @@ const MozoDashboard = () => {
                             <span className="font-black text-white text-sm italic tracking-tight">{formatPrice(item.precioUnitario * item.cantidad)}</span>
                           </div>
                         ))}
+                      </div>
+
+                      <div className="flex justify-between items-center mb-6">
+                        <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
+                          Pago · {order.metodoPago === 'Efectivo' ? '💵 Efectivo' : '💳 Tarjeta'}
+                        </span>
+                        <PaymentBadge pagado={order.pagoConfirmado} />
                       </div>
 
                       <div className="pt-6 border-t border-white/5 flex justify-between items-end">

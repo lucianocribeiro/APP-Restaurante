@@ -17,7 +17,7 @@ const AdminDashboard = () => {
   const [newTableNum, setNewTableNum] = useState('');
   const [users, setUsers] = useState<any[]>([]);
   const [newUser, setNewUser] = useState({ nombre: '', email: '', password: '', rol: 'mozo' });
-  const [activeTab, setActiveTab] = useState<'salon' | 'config' | 'stock'>('salon');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'salon' | 'config' | 'stock'>('salon');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [products, setProducts] = useState<any[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
@@ -452,11 +452,18 @@ const AdminDashboard = () => {
 
         <nav className="flex-1 px-4 space-y-2 mt-2">
           <div className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] px-4 mb-4">Gestión de Salón</div>
+          <button
+            onClick={() => { setActiveTab('dashboard'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all border group ${activeTab === 'dashboard' ? 'bg-primary/10 text-primary border-primary/20' : 'text-gray-500 hover:text-white hover:bg-white/5 border-transparent'}`}
+          >
+            <LayoutDashboard size={22} className="group-hover:scale-110 transition-transform" />
+            <span className="font-bold tracking-tight">Dashboard</span>
+          </button>
           <button 
             onClick={() => { setActiveTab('salon'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all border group ${activeTab === 'salon' ? 'bg-primary/10 text-primary border-primary/20' : 'text-gray-500 hover:text-white hover:bg-white/5 border-transparent'}`}
           >
-            <LayoutDashboard size={22} className="group-hover:scale-110 transition-transform" />
+            <Utensils size={22} className="group-hover:scale-110 transition-transform" />
             <span className="font-bold tracking-tight">Mesas Activas</span>
           </button>
           <button 
@@ -497,14 +504,15 @@ const AdminDashboard = () => {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter">
-                {activeTab === 'salon' ? 'Mesas' : activeTab === 'stock' ? 'Stock' : 'Configuración'}
+                {activeTab === 'dashboard' ? 'Dashboard' : activeTab === 'salon' ? 'Mesas' : activeTab === 'stock' ? 'Stock' : 'Configuración'}
               </h2>
               <div className="bg-primary/10 text-primary px-3 py-1 rounded-lg text-[10px] sm:text-xs font-black uppercase tracking-widest border border-primary/20">
-                {activeTab === 'salon' ? 'Activas' : activeTab === 'stock' ? 'Inventario' : 'Ajustes'}
+                {activeTab === 'dashboard' ? 'Resumen' : activeTab === 'salon' ? 'Activas' : activeTab === 'stock' ? 'Inventario' : 'Ajustes'}
               </div>
             </div>
             <p className="text-gray-500 font-medium">
-              {activeTab === 'salon' ? 'Control de cuentas y pedidos por mesa.' : 
+              {activeTab === 'dashboard' ? 'Resumen del salón en tiempo real.' :
+               activeTab === 'salon' ? 'Control de cuentas y pedidos por mesa.' : 
                activeTab === 'stock' ? 'Control de disponibilidad de productos en tiempo real.' : 
                'Gestión de mesas y configuración local.'}
             </p>
@@ -530,24 +538,23 @@ const AdminDashboard = () => {
           </div>
         </header>
 
-        {/* Improved Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
-          <div className="bg-gray-900 border border-white/5 p-5 sm:p-6 rounded-2xl sm:rounded-[2rem] shadow-xl">
-            <p className="text-gray-500 text-[9px] sm:text-[10px] font-black uppercase tracking-widest mb-1">Mesas Abiertas</p>
-            <h3 className="text-2xl sm:text-3xl font-black text-white">{tableList.length}</h3>
-          </div>
-          <div className="bg-gray-900 border border-white/5 p-5 sm:p-6 rounded-2xl sm:rounded-[2rem] shadow-xl">
-            <p className="text-gray-500 text-[9px] sm:text-[10px] font-black uppercase tracking-widest mb-1">Pedidos Totales</p>
-            <h3 className="text-2xl sm:text-3xl font-black text-white">{orders.length}</h3>
-          </div>
-          <div className="bg-gray-900 border border-white/5 p-5 sm:p-6 rounded-2xl sm:rounded-[2rem] shadow-xl sm:col-span-2">
-            <p className="text-gray-500 text-[9px] sm:text-[10px] font-black uppercase tracking-widest mb-1">Total por Cobrar</p>
-            <h3 className="text-2xl sm:text-3xl font-black text-primary">{formatPrice(Object.values(tables).reduce((acc: number, t: any) => acc + t.total, 0))}</h3>
-          </div>
-        </div>
-
         {loading ? (
           <div className="flex justify-center items-center h-64"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>
+        ) : activeTab === 'dashboard' ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
+            <div className="bg-gray-900 border border-white/5 p-5 sm:p-6 rounded-2xl sm:rounded-[2rem] shadow-xl">
+              <p className="text-gray-500 text-[9px] sm:text-[10px] font-black uppercase tracking-widest mb-1">Mesas Abiertas</p>
+              <h3 className="text-2xl sm:text-3xl font-black text-white">{tableList.filter((t: any) => t.status !== 'Libre').length}</h3>
+            </div>
+            <div className="bg-gray-900 border border-white/5 p-5 sm:p-6 rounded-2xl sm:rounded-[2rem] shadow-xl">
+              <p className="text-gray-500 text-[9px] sm:text-[10px] font-black uppercase tracking-widest mb-1">Pedidos Totales</p>
+              <h3 className="text-2xl sm:text-3xl font-black text-white">{orders.length}</h3>
+            </div>
+            <div className="bg-gray-900 border border-white/5 p-5 sm:p-6 rounded-2xl sm:rounded-[2rem] shadow-xl sm:col-span-2">
+              <p className="text-gray-500 text-[9px] sm:text-[10px] font-black uppercase tracking-widest mb-1">Total por Cobrar</p>
+              <h3 className="text-2xl sm:text-3xl font-black text-primary">{formatPrice(Object.values(tables).reduce((acc: number, t: any) => acc + t.total, 0))}</h3>
+            </div>
+          </div>
         ) : activeTab === 'salon' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {tableList.length === 0 ? (

@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { getSocket, POLL_MS } from '../lib/socket';
 import { formatPrice } from '../lib/format';
 import { orderNumber } from '../lib/orderCode';
+import { QRCodeCanvas } from 'qrcode.react';
 
 const AdminDashboard = () => {
   const [orders, setOrders] = useState<any[]>([]);
@@ -137,6 +138,20 @@ const AdminDashboard = () => {
     } catch (err) {
       alert('Error al actualizar el pago');
     }
+  };
+
+  const tableMenuUrl = (numero: string) => {
+    const slug = localSettings.slug || user?.local?.slug || 'entrepanes';
+    return `${window.location.origin}/m/${slug}?mesa=${encodeURIComponent(numero)}`;
+  };
+
+  const downloadTableQr = (table: { id: number; numero: string }) => {
+    const canvas = document.getElementById(`qr-mesa-${table.id}`) as HTMLCanvasElement | null;
+    if (!canvas) return;
+    const link = document.createElement('a');
+    link.href = canvas.toDataURL('image/png');
+    link.download = `qr-mesa-${table.numero}.png`;
+    link.click();
   };
 
   const closeTable = async (tableMesa: string) => {
@@ -722,6 +737,15 @@ const AdminDashboard = () => {
                 <div key={table.id} className="bg-gray-900 border border-white/5 p-6 rounded-[2rem] flex flex-col items-center group relative overflow-hidden">
                   <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1">Mesa</span>
                   <h4 className="text-4xl font-black text-white italic">{table.numero}</h4>
+                  <div className="mt-4 bg-white p-2 rounded-xl">
+                    <QRCodeCanvas id={`qr-mesa-${table.id}`} value={tableMenuUrl(table.numero)} size={512} marginSize={2} style={{ width: 120, height: 120 }} />
+                  </div>
+                  <button
+                    onClick={() => downloadTableQr(table)}
+                    className="mt-3 text-primary bg-primary/10 hover:bg-primary hover:text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                  >
+                    Descargar QR
+                  </button>
                   <button 
                     onClick={() => deleteTableRecord(table.id)}
                     className="mt-4 text-red-500 bg-red-500/10 hover:bg-red-500 hover:text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all opacity-0 group-hover:opacity-100"

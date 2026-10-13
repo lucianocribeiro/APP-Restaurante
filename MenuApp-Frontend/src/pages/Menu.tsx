@@ -41,6 +41,13 @@ const Menu = () => {
 
   const { items, addItem, removeItem, total, clearCart } = useCartStore();
 
+  // Each table's QR opens /m/:slug?mesa=N; a valid table locks the selection for the customer.
+  const mesaFromQr = !!mesaParam && !!local?.mesas?.some((m: any) => m.numero === mesaParam);
+
+  useEffect(() => {
+    if (local && mesaParam && !mesaFromQr) setSelectedTableNum('');
+  }, [local, mesaParam, mesaFromQr]);
+
   useEffect(() => {
     const loadStaticMenu = () => {
       if (slug !== ENTREPANES_LOCAL.slug) {
@@ -589,7 +596,16 @@ const Menu = () => {
                     </div>
                   </div>
 
-                  {tipoOrden === 'salon' && (
+                  {tipoOrden === 'salon' && mesaFromQr && (
+                    <div>
+                      <p className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-3">Tu mesa</p>
+                      <span className="inline-block py-2.5 px-4 rounded-xl border-2 border-brand bg-brand text-white font-bold text-sm">
+                        Mesa {mesaParam}
+                      </span>
+                    </div>
+                  )}
+
+                  {tipoOrden === 'salon' && !mesaFromQr && (
                     <div>
                       <p className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-3">Elige tu mesa</p>
                       <div className="flex flex-wrap gap-2">

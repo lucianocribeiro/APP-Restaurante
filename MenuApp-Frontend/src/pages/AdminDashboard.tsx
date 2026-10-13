@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, ShoppingBag, Utensils, Settings, LogOut, CheckCircle, Clock, ArrowRight, X, Package, Plus, Minus, Search, Trash2 } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Utensils, Settings, LogOut, CheckCircle, Clock, ArrowRight, X, Package, Plus, Minus, Search, Trash2, Download } from 'lucide-react';
 import api from '../api/axios';
 import { useAuthStore } from '../context/authStore';
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +7,7 @@ import { getSocket, POLL_MS } from '../lib/socket';
 import { formatPrice } from '../lib/format';
 import { orderNumber } from '../lib/orderCode';
 import { QRCodeCanvas } from 'qrcode.react';
+import { downloadCsv } from '../lib/exportCsv';
 
 const AdminDashboard = () => {
   const [orders, setOrders] = useState<any[]>([]);
@@ -138,6 +139,72 @@ const AdminDashboard = () => {
     } catch (err) {
       alert('Error al actualizar el pago');
     }
+  };
+
+  const exportOrders = async () => {
+    try {
+      const { data } = await api.get('/admin/orders');
+      downloadCsv('historial-pedidos',
+        ['Pedido', 'Fecha', 'Tipo', 'Mesa', 'Estado', 'Método de pago', 'Pagado', 'Productos', 'Total'],
+        data.map((o: any) => [
+          orderNumber(o),
+          new Date(o.createdAt).toLocaleString('es'),
+          o.tipoOrden,
+          o.mesa,
+          o.estado,
+          o.metodoPago,
+          o.pagoConfirmado ? 'Sí' : 'No',
+          o.items.map((i: any) => `${i.cantidad}x ${i.producto?.nombre ?? i.productId}`).join(', '),
+          o.total,
+        ]));
+    } catch (err) {
+      alert('Error al exportar pedidos');
+    }
+  };
+
+  const exportOrderItems = async () => {
+    try {
+      const { data } = await api.get('/admin/orders');
+      downloadCsv('detalle-pedidos',
+        ['Pedido', 'Fecha', 'Mesa', 'Estado', 'Producto', 'Cantidad', 'Precio unitario', 'Subtotal'],
+        data.flatMap((o: any) => o.items.map((i: any) => [
+          orderNumber(o),
+          new Date(o.createdAt).toLocaleString('es'),
+          o.mesa,
+          o.estado,
+          i.producto?.nombre ?? i.productId,
+          i.cantidad,
+          i.precioUnitario,
+          i.precioUnitario * i.cantidad,
+        ])));
+    } catch (err) {
+      alert('Error al exportar el detalle de pedidos');
+    }
+  };
+
+  const exportStock = async () => {
+    try {
+      const { data } = await api.get('/admin/products');
+      downloadCsv('stock',
+        ['ID', 'Producto', 'Categoría', 'Cocina', 'Precio', 'Stock', 'Activo'],
+        data.map((p: any) => [
+          p.id, p.nombre, p.categoria?.nombre, p.kitchen?.nombre, p.precio, p.stock, p.activo === false ? 'No' : 'Sí',
+        ]));
+    } catch (err) {
+      alert('Error al exportar stock');
+    }
+  };
+
+  const exportTables = () => {
+    downloadCsv('mesas',
+      ['Mesa', 'Estado', 'Pedidos activos', 'Cuenta', 'Link QR'],
+      allTables.map((t: any) => [
+        t.numero,
+        tables[t.numero]?.status ?? 'Libre',
+        tables[t.numero]?.orders.length ?? 0,
+        tables[t.numero]?.total ?? 0,
+        tableMenuUrl(t.numero),
+      ]));
   };
 
   const tableMenuUrl = (numero: string) => {
@@ -408,6 +475,25 @@ const AdminDashboard = () => {
                activeTab === 'stock' ? 'Control de disponibilidad de productos en tiempo real.' : 
                'Gestión de mesas y configuración local.'}
             </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="flex items-center gap-1.5 text-[10px] font-black text-gray-500 uppercase tracking-widest mr-1">
+              <Download size={14} /> Exportar
+            </span>
+            {([
+              ['Pedidos', exportOrders],
+              ['Detalle de pedidos', exportOrderItems],
+              ['Stock', exportStock],
+              ['Mesas', exportTables],
+            ] as [string, () => void][]).map(([label, onExport]) => (
+              <button
+                key={label}
+                onClick={onExport}
+                className="bg-white/5 hover:bg-primary text-gray-300 hover:text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-white/5"
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </header>
 

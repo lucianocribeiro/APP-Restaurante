@@ -95,7 +95,25 @@ const MozoDashboard = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate('/admin/login', { replace: true });
+  };
+
+  const updateStatus = async (orderId: number, nextStatus: string) => {
+    try {
+      await api.put(`/admin/orders/${orderId}/status`, { estado: nextStatus });
+      fetchOrders();
+    } catch (err) {
+      alert('Error al actualizar estado');
+    }
+  };
+
+  const togglePayment = async (orderId: number, currentStatus: boolean) => {
+    try {
+      await api.put(`/admin/orders/${orderId}/payment`, { pagoConfirmado: !currentStatus });
+      fetchOrders();
+    } catch (err) {
+      alert('Error al actualizar el pago');
+    }
   };
 
   const handleTomarPedido = (mesaNum: string) => {
@@ -331,11 +349,11 @@ const MozoDashboard = () => {
                       </div>
 
                       <div className="space-y-4 mb-8">
-                        {order.items.map((item: any) => (
+                        {order.items && order.items.map((item: any) => (
                           <div key={item.id} className="flex justify-between items-center bg-white/5 p-4 rounded-2xl group-hover:bg-white/10 transition-colors">
                             <div className="flex items-center gap-4">
                               <span className="font-black text-primary text-sm bg-primary/10 w-8 h-8 flex items-center justify-center rounded-lg">{item.cantidad}x</span>
-                              <span className="font-bold text-gray-300 text-sm uppercase italic">{item.producto.nombre}</span>
+                              <span className="font-bold text-gray-300 text-sm uppercase italic">{item.producto?.nombre || 'Producto'}</span>
                             </div>
                             <span className="font-black text-white text-sm italic tracking-tight">{formatPrice(item.precioUnitario * item.cantidad)}</span>
                           </div>
@@ -344,9 +362,39 @@ const MozoDashboard = () => {
 
                       <div className="flex justify-between items-center mb-6">
                         <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
-                          Pago · {order.metodoPago === 'Efectivo' ? '💵 Efectivo' : '💳 Tarjeta'}
+                          Pago · {order.metodoPago === 'Efectivo' ? '💵 Efectivo' : '💳 Tarjeta BAC'}
                         </span>
                         <PaymentBadge pagado={order.pagoConfirmado} />
+                      </div>
+
+                      {/* Mozo Action Buttons */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 pt-4 border-t border-white/5">
+                        {order.estado !== 'Listo' && order.estado !== 'Entregado' && (
+                          <button
+                            onClick={() => updateStatus(order.id, 'Listo')}
+                            className="w-full py-3 px-4 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 font-black text-[11px] uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+                          >
+                            <CheckCircle size={14} /> Marcar Listo
+                          </button>
+                        )}
+                        {order.estado === 'Listo' && (
+                          <button
+                            onClick={() => updateStatus(order.id, 'Entregado')}
+                            className="w-full py-3 px-4 rounded-xl bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 font-black text-[11px] uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+                          >
+                            <CheckCircle size={14} /> Entregar Pedido
+                          </button>
+                        )}
+                        <button
+                          onClick={() => togglePayment(order.id, order.pagoConfirmado)}
+                          className={`w-full py-3 px-4 rounded-xl border font-black text-[11px] uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+                            order.pagoConfirmado
+                              ? 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10'
+                              : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/30'
+                          }`}
+                        >
+                          {order.pagoConfirmado ? '✓ Pago Confirmado' : '💵 Confirmar Cobro'}
+                        </button>
                       </div>
 
                       <div className="pt-6 border-t border-white/5 flex justify-between items-end">

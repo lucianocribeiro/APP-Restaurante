@@ -1,20 +1,20 @@
 import axios from 'axios';
-import { demoAdapter } from './demo';
+import { supabaseAdapter } from './supabaseAdapter';
 
 // Same-origin `/api` (Apache/PM2 or Vite proxy). On Vercel set VITE_BACKEND_URL
 // to the teammate's API host, e.g. https://api.example.com
 const backend = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
 
-// On Vercel without VITE_BACKEND_URL there is no API: requests are answered by
-// the demo adapter with data stored in the browser.
-export const HAS_BACKEND = Boolean(backend) || import.meta.env.DEV;
+// With Supabase connected, backend is always available in cloud
+export const HAS_BACKEND = true;
 
 const api = axios.create({
   baseURL: backend ? `${backend}/api` : '/api',
 });
 
-if (!HAS_BACKEND) {
-  api.defaults.adapter = demoAdapter;
+// Use Supabase cloud adapter when no custom Express backend URL is configured
+if (!backend) {
+  api.defaults.adapter = supabaseAdapter;
 }
 
 api.interceptors.request.use((config) => {

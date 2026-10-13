@@ -1,8 +1,7 @@
-import React, { lazy, Suspense, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import React, { lazy, Suspense } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './context/authStore';
 import { HAS_BACKEND } from './api/axios';
-import { demoUser } from './api/demo';
 
 const Menu = lazy(() => import('./pages/Menu'));
 const Login = lazy(() => import('./pages/Login'));
@@ -19,24 +18,18 @@ const PageLoader = () => (
 
 const ProtectedRoute = ({ children, rol }: { children: React.ReactNode; rol: 'owner' | 'mozo' }) => {
   const token = useAuthStore(state => state.token);
-  if (!token) return HAS_BACKEND ? <Navigate to="/admin/login" replace /> : <DemoEnter rol={rol} />;
+  const user = useAuthStore(state => state.user);
+
+  if (!token) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  // Mozo cannot access owner (Admin) panel
+  if (rol === 'owner' && user?.rol === 'mozo') {
+    return <Navigate to="/mozo/dashboard" replace />;
+  }
+
   return <>{children}</>;
-};
-
-const DemoEnter = ({ rol }: { rol: 'owner' | 'mozo' }) => {
-  const login = useAuthStore(state => state.login);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!HAS_BACKEND) {
-      login(demoUser(rol) as any, 'demo');
-      navigate(rol === 'mozo' ? '/mozo/dashboard' : '/admin/dashboard', { replace: true });
-    } else {
-      navigate('/admin/login', { replace: true });
-    }
-  }, [rol, login, navigate]);
-
-  return <PageLoader />;
 };
 
 function App() {
@@ -50,9 +43,10 @@ function App() {
           <Route path="/m/:slug" element={<Menu />} />
           <Route path="/status/:orderId" element={<OrderStatus />} />
 
-          <Route path="/admin/login" element={HAS_BACKEND ? <Login /> : <Navigate to="/" replace />} />
-          <Route path="/caja" element={<DemoEnter rol="owner" />} />
-          <Route path="/mozo" element={<DemoEnter rol="mozo" />} />
+          <Route path="/admin/login" element={<Login />} />
+          <Route path="/login" element={<Navigate to="/admin/login" replace />} />
+          <Route path="/caja" element={<Navigate to="/admin/login" replace />} />
+          <Route path="/mozo" element={<Navigate to="/admin/login" replace />} />
           <Route
             path="/admin/dashboard"
             element={

@@ -99,8 +99,12 @@ const Menu = () => {
   };
 
   const handlePlaceOrder = async () => {
-    if (!selectedTableNum && tipoOrden === 'salon') {
-      alert('Por favor elige una mesa para continuar.');
+    if (tipoOrden === 'salon' && !selectedTableNum) {
+      if (!isMozo && !mesaFromQr) {
+        alert('Para hacer un pedido en el salón, debés escanear el código QR de tu mesa.');
+      } else {
+        alert('Por favor elegí una mesa para continuar.');
+      }
       return;
     }
 
@@ -607,22 +611,30 @@ const Menu = () => {
 
                   {tipoOrden === 'salon' && !mesaFromQr && (
                     <div>
-                      <p className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-3">Elige tu mesa</p>
-                      <div className="flex flex-wrap gap-2">
-                        {local.mesas && local.mesas.map((mesa: any) => (
-                          <button
-                            key={mesa.id}
-                            disabled={isMozo && !!mesaParam}
-                            onClick={() => setSelectedTableNum(mesa.numero)}
-                            className={`py-2.5 px-4 rounded-xl border-2 transition-all font-bold text-sm ${selectedTableNum === mesa.numero
-                              ? 'border-brand bg-brand text-white'
-                              : 'border-peach bg-white text-brand/70 hover:border-brand/40'
-                              }`}
-                          >
-                            {mesa.numero}
-                          </button>
-                        ))}
-                      </div>
+                      {isMozo ? (
+                        <>
+                          <p className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-3">Mesa</p>
+                          <div className="flex flex-wrap gap-2">
+                            {local.mesas && local.mesas.map((mesa: any) => (
+                              <button
+                                key={mesa.id}
+                                onClick={() => setSelectedTableNum(mesa.numero)}
+                                className={`py-2.5 px-4 rounded-xl border-2 transition-all font-bold text-sm ${selectedTableNum === mesa.numero
+                                  ? 'border-brand bg-brand text-white'
+                                  : 'border-peach bg-white text-brand/70 hover:border-brand/40'
+                                  }`}
+                              >
+                                {mesa.numero}
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-2xl text-center">
+                          <p className="text-xs font-bold text-amber-600 mb-1">Escaneá el código QR de tu mesa</p>
+                          <p className="text-[11px] text-gray-500">Para pedir en el salón, escaneá el QR pegado en tu mesa. O seleccioná "Para retirar" arriba.</p>
+                        </div>
+                      )}
                     </div>
                   )}
 
